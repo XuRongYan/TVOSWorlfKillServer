@@ -1,8 +1,9 @@
-package com.rongyan.tvosworlfkillserver.Model.entity;
+package com.rongyan.tvosworlfkillserver.model.entity;
 
-import com.rongyan.tvosworlfkillserver.Model.Role;
-import com.rongyan.tvosworlfkillserver.Model.WitchFunction;
-import com.rongyan.tvosworlfkillserver.Model.WitchMedicine;
+import com.rongyan.tvosworlfkillserver.model.GameManager;
+import com.rongyan.tvosworlfkillserver.model.abstractinterface.Role;
+import com.rongyan.tvosworlfkillserver.model.abstractinterface.WitchFunction;
+import com.rongyan.tvosworlfkillserver.model.enums.WitchMedicine;
 
 import java.util.Map;
 
@@ -19,11 +20,20 @@ public class WitchEntity extends Role implements WitchFunction {
     }
 
     @Override
+    public void setManagerIndex() {
+        if (id != -1) {
+            GameManager.setWitchId(id);
+        }
+    }
+
+    @Override
     public void poisonOrLive(WitchMedicine type, int number) {
         if (type == WitchMedicine.POISON && poisonNum != 0) {
-            players.get(number).setAlive(false);
+            players.get(number).setPoisonDie(true);
+            poisonNum--;
         } else if (type == WitchMedicine.LIVE && liveNum != 0) {
             players.get(number).setAlive(true);
+            liveNum--;
         }
     }
 }

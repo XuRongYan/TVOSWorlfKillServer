@@ -1,4 +1,6 @@
-package com.rongyan.tvosworlfkillserver.Model;
+package com.rongyan.tvosworlfkillserver.model.abstractinterface;
+
+import com.rongyan.tvosworlfkillserver.model.enums.WitchMedicine;
 
 /**
  * 女巫抽象

@@ -1,4 +1,4 @@
-package com.rongyan.tvosworlfkillserver.Model;
+package com.rongyan.tvosworlfkillserver.model.abstractinterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Map;
  */
 
 public abstract class Role implements RoleFunction{
-    protected int id;
+    protected int id = -1;
     protected Map<Integer, Role> players;
     protected boolean alive = true;
     protected int votedNumber = 0;
@@ -20,6 +20,10 @@ public abstract class Role implements RoleFunction{
     private boolean killDie = false;
     private boolean poisonDie = false;
     private boolean shootDie = false;
+    private Role next;
+    private Role prev;
+    private boolean speeching = false;
+    private boolean openEyes = false;
     private List<Integer> votedIds = new ArrayList<>();
 
     public Role(Map<Integer, Role> players) {
@@ -36,6 +40,8 @@ public abstract class Role implements RoleFunction{
         votedNumber++;
         votedIds.add(id);
     }
+
+    public abstract void setManagerIndex();
 
     public Map<Integer, Role> getPlayers() {
         return players;
@@ -123,5 +129,37 @@ public abstract class Role implements RoleFunction{
 
     public void setVotedIds(List<Integer> votedIds) {
         this.votedIds = votedIds;
+    }
+
+    public Role getNext() {
+        return next;
+    }
+
+    public void setNext(Role next) {
+        this.next = next;
+    }
+
+    public Role getPrev() {
+        return prev;
+    }
+
+    public void setPrev(Role prev) {
+        this.prev = prev;
+    }
+
+    public boolean isSpeeching() {
+        return speeching;
+    }
+
+    public void setSpeeching(boolean speeching) {
+        this.speeching = speeching;
+    }
+
+    public boolean isOpenEyes() {
+        return openEyes;
+    }
+
+    public void setOpenEyes(boolean openEyes) {
+        this.openEyes = openEyes;
     }
 }

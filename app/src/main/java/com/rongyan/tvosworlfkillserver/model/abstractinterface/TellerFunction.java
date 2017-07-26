@@ -1,4 +1,4 @@
-package com.rongyan.tvosworlfkillserver.Model;
+package com.rongyan.tvosworlfkillserver.model.abstractinterface;
 
 /**
  * 预言家抽象

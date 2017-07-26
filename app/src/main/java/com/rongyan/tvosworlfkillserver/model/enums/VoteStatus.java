@@ -1,4 +1,4 @@
-package com.rongyan.tvosworlfkillserver.Model;
+package com.rongyan.tvosworlfkillserver.model.enums;
 
 /**
  * Created by XRY on 2017/7/26.

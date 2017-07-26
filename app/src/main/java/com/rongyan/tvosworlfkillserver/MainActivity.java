@@ -2,23 +2,35 @@ package com.rongyan.tvosworlfkillserver;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import com.rongyan.tvosworlfkillserver.model.GameManager;
+
+public class MainActivity extends AppCompatActivity {
+
+    private GameManager gameManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button viewById = (Button) findViewById(R.id.btn_click);
-        viewById.setOnClickListener(this);
+
+        try {
+            gameManager = new GameManager.GameBuilder(12)
+                    .setVillager(4)
+                    .setWorlf(4)
+                    .setTeller()
+                    .setWitch()
+                    .setHunter()
+                    .setIdiot()
+                    .build();
+        } catch (GameManager.NumberIsNotEnoughException | GameManager.NumberOutOfExpectedException e) {
+            e.printStackTrace();
+        }
+
+        gameManager.speech(5);
+        gameManager.endSpeech(5);
 
     }
 
-    @Override
-    public void onClick(View view) {
-        Toast.makeText(this, "ckick", Toast.LENGTH_SHORT).show();
-    }
+
 }
