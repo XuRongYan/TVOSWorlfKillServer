@@ -6,5 +6,5 @@ package com.rongyan.tvosworlfkillserver.Model;
 
 public interface RoleFunction {
     void vote(int number);
-    void  voted();
+    void  voted(int id);
 }

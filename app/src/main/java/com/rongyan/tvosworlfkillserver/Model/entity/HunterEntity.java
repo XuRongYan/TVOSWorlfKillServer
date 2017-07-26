@@ -1,9 +1,9 @@
 package com.rongyan.tvosworlfkillserver.Model.entity;
 
-import com.rongyan.tvosworlfkillserver.Model.Role;
 import com.rongyan.tvosworlfkillserver.Model.HunterFunction;
+import com.rongyan.tvosworlfkillserver.Model.Role;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Created by XRY on 2017/7/25.
@@ -11,7 +11,7 @@ import java.util.List;
 
 public class HunterEntity extends Role implements HunterFunction {
 
-    public HunterEntity(List<Role> players) {
+    public HunterEntity(Map<Integer, Role> players) {
         super(players);
         good = true;
     }

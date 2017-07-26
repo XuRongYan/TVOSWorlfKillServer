@@ -3,7 +3,7 @@ package com.rongyan.tvosworlfkillserver.Model.entity;
 import com.rongyan.tvosworlfkillserver.Model.Role;
 import com.rongyan.tvosworlfkillserver.Model.TellerFunction;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Created by XRY on 2017/7/25.
@@ -11,7 +11,7 @@ import java.util.List;
 
 public class TellerEntity extends Role implements TellerFunction {
 
-    public TellerEntity(List<Role> players) {
+    public TellerEntity(Map<Integer, Role> players) {
         super(players);
         good = true;
     }

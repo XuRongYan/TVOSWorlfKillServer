@@ -4,7 +4,7 @@ import com.rongyan.tvosworlfkillserver.Model.Role;
 import com.rongyan.tvosworlfkillserver.Model.WitchFunction;
 import com.rongyan.tvosworlfkillserver.Model.WitchMedicine;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Created by XRY on 2017/7/25.
@@ -13,7 +13,7 @@ import java.util.List;
 public class WitchEntity extends Role implements WitchFunction {
     private int poisonNum = 1;
     private int liveNum = 1;
-    public WitchEntity(List<Role> players) {
+    public WitchEntity(Map<Integer, Role> players) {
         super(players);
         good = true;
     }
