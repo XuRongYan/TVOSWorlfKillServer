@@ -6,6 +6,8 @@ import com.rongyan.tvosworlfkillserver.model.abstractinterface.TellerFunction;
 
 import java.util.Map;
 
+import static com.rongyan.tvosworlfkillserver.model.enums.RoleType.GOD;
+
 /**
  * Created by XRY on 2017/7/25.
  */
@@ -15,6 +17,7 @@ public class TellerEntity extends Role implements TellerFunction {
     public TellerEntity(Map<Integer, Role> players) {
         super(players);
         good = true;
+        setTag(GOD);
     }
 
     @Override

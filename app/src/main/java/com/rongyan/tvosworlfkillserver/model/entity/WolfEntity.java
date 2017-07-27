@@ -3,6 +3,7 @@ package com.rongyan.tvosworlfkillserver.model.entity;
 import com.rongyan.tvosworlfkillserver.model.GameManager;
 import com.rongyan.tvosworlfkillserver.model.abstractinterface.Role;
 import com.rongyan.tvosworlfkillserver.model.abstractinterface.WolfFunction;
+import com.rongyan.tvosworlfkillserver.model.enums.RoleType;
 
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class WolfEntity extends Role implements WolfFunction {
     public WolfEntity(Map<Integer, Role> players) {
         super(players);
         good = false;
+        setTag(RoleType.WOLF);
     }
 
     @Override

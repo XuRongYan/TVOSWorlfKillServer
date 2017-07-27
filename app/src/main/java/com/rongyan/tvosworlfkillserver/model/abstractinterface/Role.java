@@ -1,5 +1,7 @@
 package com.rongyan.tvosworlfkillserver.model.abstractinterface;
 
+import com.rongyan.tvosworlfkillserver.model.enums.RoleType;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ public abstract class Role implements RoleFunction{
     private Role prev;
     private boolean speeching = false;
     private boolean openEyes = false;
+    private RoleType tag;
     private List<Integer> votedIds = new ArrayList<>();
 
     public Role(Map<Integer, Role> players) {
@@ -42,6 +45,14 @@ public abstract class Role implements RoleFunction{
     }
 
     public abstract void setManagerIndex();
+
+    public RoleType getTag() {
+        return tag;
+    }
+
+    protected void setTag(RoleType tag) {
+        this.tag = tag;
+    }
 
     public Map<Integer, Role> getPlayers() {
         return players;

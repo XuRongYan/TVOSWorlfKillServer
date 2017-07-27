@@ -3,6 +3,7 @@ package com.rongyan.tvosworlfkillserver.model.entity;
 import com.rongyan.tvosworlfkillserver.model.GameManager;
 import com.rongyan.tvosworlfkillserver.model.abstractinterface.Role;
 import com.rongyan.tvosworlfkillserver.model.abstractinterface.WitchFunction;
+import com.rongyan.tvosworlfkillserver.model.enums.RoleType;
 import com.rongyan.tvosworlfkillserver.model.enums.WitchMedicine;
 
 import java.util.Map;
@@ -17,6 +18,7 @@ public class WitchEntity extends Role implements WitchFunction {
     public WitchEntity(Map<Integer, Role> players) {
         super(players);
         good = true;
+        setTag(RoleType.GOD);
     }
 
     @Override
@@ -30,6 +32,7 @@ public class WitchEntity extends Role implements WitchFunction {
     public void poisonOrLive(WitchMedicine type, int number) {
         if (type == WitchMedicine.POISON && poisonNum != 0) {
             players.get(number).setPoisonDie(true);
+            players.get(number).setAlive(false);
             poisonNum--;
         } else if (type == WitchMedicine.LIVE && liveNum != 0) {
             players.get(number).setAlive(true);

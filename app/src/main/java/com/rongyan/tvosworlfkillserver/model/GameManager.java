@@ -106,6 +106,20 @@ public class GameManager {
         }
     }
 
+    public void checkKilled() {
+        Collection<Role> values = players.values();
+        Iterator<Role> iterator = values.iterator();
+        List<Role> list = new ArrayList<>();
+        while (iterator.hasNext()) {
+            Role role = iterator.next();
+            if (role.getCheckedKill() != 0 && role.getCheckedKill() != WOLF_NUM) {
+
+            } else if (role.getCheckedKill() == WOLF_NUM) {
+                killExecute(role.getId());
+            }
+        }
+    }
+
     /**
      * 获取平票PK的玩家
      *
@@ -127,22 +141,41 @@ public class GameManager {
      *
      * @param id
      */
-    private void voteExecute(int id) {
+    public void voteExecute(int id) {
         Role role = players.get(id);
-        if (!(role instanceof IdiotEntity && ((IdiotEntity) role).isFirstVoted())) {
+        if (role instanceof IdiotEntity && ((IdiotEntity) role).isFirstVoted()) {
+            ((IdiotEntity) role).setFirstVoted(false);
+        } else if (role instanceof HunterEntity) {
+
+        } else {
+
+
             role.getPrev().setNext(role.getNext());
             role.getNext().setPrev(role.getPrev());
             role.setNext(null);
             role.setPrev(null);
             initDieStatus(id);
             role.setVoteDie(true);
-            players.remove(id);
-        } else {
-            ((IdiotEntity) role).setFirstVoted(false);
         }
 
 
     }
+
+    /**
+     * 被杀
+     * @param id
+     */
+    public void killExecute(int id) {
+        Role role = players.get(id);
+        role.getPrev().setNext(role.getNext());
+        role.getNext().setPrev(role.getPrev());
+        role.setNext(null);
+        role.setPrev(null);
+        initDieStatus(id);
+        role.setKillDie(true);
+    }
+
+
 
     /**
      * 初始化死法
