@@ -8,6 +8,14 @@ package com.rongyan.tvosworlfkillserver.model.enums;
 public enum RoleType {
     GOD, //神
     VILLAGER, //民
-    WOLF //狼
+    WOLF ,//狼
+    ANY, //所有
+    GUARD, //守卫
+    TELLER, //预言家
+    WITCH, //女巫
+    HUNTER, //猎人
+    IDIOT, //白痴
+
+    JESUS //上帝
 
 }

@@ -69,4 +69,5 @@ dependencies {
 
     }
     compile project(':commonlib')
+    compile 'de.greenrobot:eventbus:3.0.0-beta1'
 }

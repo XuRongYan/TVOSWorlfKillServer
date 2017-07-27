@@ -8,7 +8,6 @@ import android.view.View;
 
 import com.rongyan.tvosworlfkillserver.adapter.PlayerAdapter;
 import com.rongyan.tvosworlfkillserver.base.BaseActivity;
-import com.rongyan.tvosworlfkillserver.model.GameManager;
 import com.rongyan.tvosworlfkillserver.model.entity.UserEntity;
 
 import java.util.ArrayList;
