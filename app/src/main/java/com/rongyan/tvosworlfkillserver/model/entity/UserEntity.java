@@ -39,6 +39,7 @@ public class UserEntity {
         this.userId = userId;
         this.username = username;
         this.headImg = headImg;
+
     }
 
     public BaseState getState() {

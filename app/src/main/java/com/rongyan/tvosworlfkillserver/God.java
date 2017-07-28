@@ -41,6 +41,7 @@ public class God implements GodContract {
     private static int hunterNum = 0;
     private static int idiotNum = 0;
     private static int guardNum = 0;
+    private int speechingId = -1; //正在发言
     public static final int GOOD = 1; //好人
     public static final int BAD = 0; //狼人
     private int killedId = -1; //狼人杀人ID
@@ -62,6 +63,7 @@ public class God implements GodContract {
         //发牌
         for (int i = 0; i < players.size(); i++) {
             UserEntity userEntity = players.get(i);
+            EventBus.getDefault().register(userEntity);
             int i1 = random.nextInt() % (12 - i);
             userEntity.setRoleType(list.get(i1));
             list.remove(i1);
@@ -140,13 +142,33 @@ public class God implements GodContract {
             case SAVE:
                 isSave = true;
                 break;
+            case NOT_SAVE:
+                isSave = false;
+                break;
             case POISON:
                 poisonId = eventEntity.getTarget();
                 break;
             case PROTECT:
                 protectedId = eventEntity.getTarget();
                 break;
+            case CHIEF_CAMPAIGN:
+                chiefCampaignMap.put(chiefCampaignMap.size(), eventEntity.getSend());
+                break;
+            case NOT_CHIEF_CAMPAIGN:
+                break;
+            case END_SPEECH:
+                break;
         }
+    }
+
+    /**
+     * 统一取消eventBus监听
+     */
+    public void release() {
+        for (int i = 0; i < players.size(); i++) {
+            EventBus.getDefault().unregister(players.get(i));
+        }
+        EventBus.getDefault().unregister(this);
     }
 
     private void shoot(int id) {
