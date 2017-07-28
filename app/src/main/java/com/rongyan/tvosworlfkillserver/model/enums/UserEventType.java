@@ -11,6 +11,9 @@ public enum  UserEventType {
     GET, //预言家验人
     SAVE, //女巫开解药
     POISON, //女巫开毒药
+    NOT_SAVE, //女巫不救人
     PROTECT, //守卫守人
-    CHIEF_CAMPAIGN //是否上警
+    CHIEF_CAMPAIGN, //上警
+    NOT_CHIEF_CAMPAIGN, //不上警
+    END_SPEECH //结束发言
 }

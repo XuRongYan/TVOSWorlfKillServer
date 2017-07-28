@@ -1,19 +1,27 @@
 package com.rongyan.tvosworlfkillserver.model.entity;
 
 import com.rongyan.tvosworlfkillserver.God;
-import com.rongyan.tvosworlfkillserver.model.abstractinterface.UserContract;
+import com.rongyan.tvosworlfkillserver.model.abstractinterface.BaseState;
 import com.rongyan.tvosworlfkillserver.model.enums.RoleType;
-import com.rongyan.tvosworlfkillserver.model.enums.UserEventType;
-
-import de.greenrobot.event.EventBus;
-
-import static android.R.attr.id;
+import com.rongyan.tvosworlfkillserver.model.state.ChiefCampaignState;
+import com.rongyan.tvosworlfkillserver.model.state.CloseEyesState;
+import com.rongyan.tvosworlfkillserver.model.state.DeadState;
+import com.rongyan.tvosworlfkillserver.model.state.GetState;
+import com.rongyan.tvosworlfkillserver.model.state.KillState;
+import com.rongyan.tvosworlfkillserver.model.state.OpenEyesState;
+import com.rongyan.tvosworlfkillserver.model.state.PoisonDeadState;
+import com.rongyan.tvosworlfkillserver.model.state.PoisonState;
+import com.rongyan.tvosworlfkillserver.model.state.ProtectState;
+import com.rongyan.tvosworlfkillserver.model.state.SaveState;
+import com.rongyan.tvosworlfkillserver.model.state.ShootState;
+import com.rongyan.tvosworlfkillserver.model.state.SpeechState;
+import com.rongyan.tvosworlfkillserver.model.state.VoteState;
 
 /**
  * Created by XRY on 2017/7/27.
  */
 
-public class UserEntity implements UserContract {
+public class UserEntity {
     private int userId;
 
     private String username;
@@ -24,56 +32,21 @@ public class UserEntity implements UserContract {
 
     private RoleType roleType;
 
-    protected boolean alive = true;
-
-
-    private boolean eyeOpen = true;
-
-
-    @Override
-    public void kill(int id) {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.KILL, id));
-    }
-
-    public void vote(int number) {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.VOTE, id));
-    }
-
-    @Override
-    public void shoot(int id) {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.SHOOT, id));
-    }
-
-    @Override
-    public void get(int id) {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.GET, id));
-    }
-
-    @Override
-    public void save() {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.SAVE, -1));
-    }
-
-    @Override
-    public void poison(int id) {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.POISON, id));
-    }
-
-    @Override
-    public void protect(int id) {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.PROTECT, id));
-    }
-
-    @Override
-    public void chiefCampaign() {
-        EventBus.getDefault().post(new UserEventEntity(this, UserEventType.CHIEF_CAMPAIGN, -1));
-    }
+    private BaseState state = new OpenEyesState(); //基础状态是睁眼
 
 
     public UserEntity(int userId, String username, int headImg) {
         this.userId = userId;
         this.username = username;
         this.headImg = headImg;
+    }
+
+    public BaseState getState() {
+        return state;
+    }
+
+    public void setState(BaseState state) {
+        this.state = state;
     }
 
     public int getUserId() {
@@ -108,6 +81,10 @@ public class UserEntity implements UserContract {
         this.roleType = roleType;
     }
 
+    public void send(int targetId) {
+        state.send(this, targetId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -130,14 +107,6 @@ public class UserEntity implements UserContract {
     }
 
 
-    public boolean isEyeOpen() {
-        return eyeOpen;
-    }
-
-    public void setEyeOpen(boolean eyeOpen) {
-        this.eyeOpen = eyeOpen;
-    }
-
     public void onMessageEvent(JesusEventEntity eventEntity) {
         //TODO 用户输入采用Rxjava的zip方法打包发送给God
         if (eventEntity.getRoleType() == roleType
@@ -145,37 +114,53 @@ public class UserEntity implements UserContract {
                 || (eventEntity.getRoleType() == RoleType.GOD && (roleType == RoleType.TELLER || roleType == RoleType.WITCH || roleType == RoleType.HUNTER || roleType == RoleType.IDIOT || roleType == RoleType.GUARD))) {
             switch (eventEntity.getEvent()) {
                 case CLOSE_EYES:
-                    eyeOpen = false;
+                    setState(new CloseEyesState());
                     break;
                 case OPEN_EYES:
-                    eyeOpen = true;
+                    setState(new OpenEyesState());
                     break;
                 case KILL:
-
+                    setState(new KillState());
                     break;
                 case PROTECT:
+                    setState(new ProtectState());
                     break;
                 case POISON:
+                    setState(new PoisonState());
                     break;
                 case SAVE:
+                    setState(new SaveState());
                     break;
                 case SHOOT:
+                    setState(new ShootState());
                     break;
                 case TRUE:
                     break;
                 case FALSE:
                     break;
                 case GET:
+                    setState(new GetState());
                     break;
                 case CHIEF_CAMPAIGN:
+                    setState(new ChiefCampaignState());
                     break;
                 case VOTE:
+                    setState(new VoteState());
                     break;
                 case SPEECH:
+                    setState(new SpeechState());
                     break;
                 case STOP_SPEECH:
+                    setState(new OpenEyesState());
                     break;
                 case GOOD_OR_NOT:
+
+                    break;
+                case DEAD:
+                    setState(new DeadState());
+                    break;
+                case POISON_DEAD:
+                    setState(new PoisonDeadState());
                     break;
             }
         }

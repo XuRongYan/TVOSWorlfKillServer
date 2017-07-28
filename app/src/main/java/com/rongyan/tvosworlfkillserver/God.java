@@ -2,14 +2,21 @@ package com.rongyan.tvosworlfkillserver;
 
 import android.util.ArrayMap;
 
+import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
+import com.rongyan.tvosworlfkillserver.model.abstractinterface.BaseJesusState;
 import com.rongyan.tvosworlfkillserver.model.entity.JesusEventEntity;
 import com.rongyan.tvosworlfkillserver.model.entity.UserEntity;
 import com.rongyan.tvosworlfkillserver.model.entity.UserEventEntity;
 import com.rongyan.tvosworlfkillserver.model.enums.JesusEvent;
 import com.rongyan.tvosworlfkillserver.model.enums.RoleType;
+import com.rongyan.tvosworlfkillserver.model.state.DeadState;
+import com.rongyan.tvosworlfkillserver.model.state.jesusstate.DaytimeState;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import de.greenrobot.event.EventBus;
 import de.greenrobot.event.Subscribe;
@@ -20,12 +27,20 @@ import de.greenrobot.event.ThreadMode;
  * Created by XRY on 2017/7/27.
  */
 
-public class God implements GodContract{
+public class God implements GodContract {
     private static God INSTANCE = null;
+    private static List<RoleType> list = new ArrayList<>(); //牌堆
     private Map<Integer, UserEntity> players = new LinkedHashMap<>(); //玩家的集合
     private Map<UserEntity, Integer> votePool = new ArrayMap<>(); //投票池
     private Map<UserEntity, Integer> killPool = new ArrayMap<>(); //杀人池
     private Map<Integer, UserEntity> chiefCampaignMap = new LinkedHashMap<>();
+    private static int wolfNum = 0;
+    private static int villagerNum = 0;
+    private static int tellerNum = 0;
+    private static int witchNum = 0;
+    private static int hunterNum = 0;
+    private static int idiotNum = 0;
+    private static int guardNum = 0;
     public static final int GOOD = 1; //好人
     public static final int BAD = 0; //狼人
     private int killedId = -1; //狼人杀人ID
@@ -38,24 +53,43 @@ public class God implements GodContract{
     private boolean isSave = false; //女巫是否选择救人
     private boolean hasPoison = true; //女巫是否有毒药
     private boolean hasLive = true; //女巫是否有解药
+    private BaseJesusState state = new DaytimeState();
+    Random random = new Random();
 
-    private God() {
+    private God(Map<Integer, UserEntity> players) {
+        this.players = players;
         EventBus.getDefault().register(this);
+        //发牌
+        for (int i = 0; i < players.size(); i++) {
+            UserEntity userEntity = players.get(i);
+            int i1 = random.nextInt() % (12 - i);
+            userEntity.setRoleType(list.get(i1));
+            list.remove(i1);
+        }
     }
 
     /**
      * 单例模式
+     *
      * @return
      */
-    public static God getInstance() {
+    private static God getInstance(Map<Integer, UserEntity> players) {
         if (INSTANCE == null) {
             synchronized (God.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new God();
+                    INSTANCE = new God(players);
                 }
             }
         }
         return INSTANCE;
+    }
+
+    public BaseJesusState getState() {
+        return state;
+    }
+
+    public void setState(BaseJesusState state) {
+        this.state = state;
     }
 
     @Override
@@ -80,115 +114,6 @@ public class God implements GodContract{
 
     }
 
-    @Override
-    public void everyOneCloseEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.CLOSE_EYES));
-    }
-
-    @Override
-    public void guardOpenEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.OPEN_EYES));
-    }
-
-    @Override
-    public void guardCloseEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.CLOSE_EYES));
-    }
-
-    @Override
-    public void wolvesOpenEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.OPEN_EYES));
-    }
-
-    @Override
-    public void wolvesCloseEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.CLOSE_EYES));
-    }
-
-    @Override
-    public void tellerOpenEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.OPEN_EYES));
-    }
-
-    @Override
-    public void tellerCloseEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.CLOSE_EYES));
-    }
-
-    @Override
-    public void witchOpenEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.OPEN_EYES));
-    }
-
-    @Override
-    public void witchCloseEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.CLOSE_EYES));
-    }
-
-    @Override
-    public void hunterOpenEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.OPEN_EYES));
-    }
-
-    @Override
-    public void hunterCloseEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.CLOSE_EYES));
-    }
-
-    @Override
-    public void everyoneOpenEyes() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.OPEN_EYES));
-    }
-
-    @Override
-    public void askWitch() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.SAVE, killedId));
-    }
-
-    @Override
-    public void askPoison() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.SAVE));
-    }
-
-    @Override
-    public void askTeller() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.GET));
-    }
-
-    @Override
-    public void askGuard() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.PROTECT));
-    }
-
-    @Override
-    public void askIdiot() {
-
-    }
-
-    @Override
-    public void askHunter() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.SHOOT));
-    }
-
-    @Override
-    public void askWolves() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.KILL));
-    }
-
-    @Override
-    public void chiefCampaign() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.CHIEF_CAMPAIGN));
-    }
-
-    @Override
-    public void banishVote() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.VOTE));
-    }
-
-    @Override
-    public void chiefVote() {
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.VOTE));
-    }
 
     @Override
     public void tellGoodOrNot() {
@@ -201,6 +126,7 @@ public class God implements GodContract{
         switch (eventEntity.getType()) {
             case KILL: //杀人
                 killPool.put(eventEntity.getSend(), eventEntity.getTarget());
+
                 break;
             case VOTE: //票人
                 votePool.put(eventEntity.getSend(), eventEntity.getTarget());
@@ -230,7 +156,82 @@ public class God implements GodContract{
 
     private void dead(int id) {
         if (id != -1) {
-            players.get(id).setAlive(false);
+            players.get(id).setState(new DeadState());
+        }
+    }
+
+    public static class Builder {
+        private Map<Integer, UserEntity> players;
+
+        public Builder(Map<Integer, UserEntity> players) {
+            this.players = players;
+        }
+
+        public Builder setVillagers(int num) {
+            villagerNum = num;
+            return this;
+        }
+
+        public Builder setWolves(int num) {
+            wolfNum = num;
+            return this;
+        }
+
+        public Builder setTeller() {
+            tellerNum = 1;
+            return this;
+        }
+
+        public Builder setWitch() {
+            witchNum = 1;
+            return this;
+        }
+
+        public Builder setHunter() {
+            hunterNum = 1;
+            return this;
+        }
+
+        public Builder setGuard() {
+            guardNum = 1;
+            return this;
+        }
+
+        public Builder setIdiot() {
+            idiotNum = 1;
+            return this;
+        }
+
+        public God build() throws PlayerNotFitException {
+            int number = villagerNum + wolfNum + hunterNum + tellerNum + witchNum + idiotNum + guardNum;
+            if (players.size() == number) {
+                for (int i = 0; i < villagerNum; i++) {
+                    list.add(RoleType.VILLAGER);
+                }
+                for (int i = 0; i < wolfNum; i++) {
+                    list.add(RoleType.WOLF);
+                }
+                for (int i = 0; i < tellerNum; i++) {
+                    list.add(RoleType.TELLER);
+                }
+                for (int i = 0; i < witchNum; i++) {
+                    list.add(RoleType.WITCH);
+                }
+                for (int i = 0; i < hunterNum; i++) {
+                    list.add(RoleType.HUNTER);
+                }
+                for (int i = 0; i < idiotNum; i++) {
+                    list.add(RoleType.IDIOT);
+                }
+                for (int i = 0; i < guardNum; i++) {
+                    list.add(RoleType.GUARD);
+                }
+                return getInstance(players);
+            }
+
+            else {
+                throw new PlayerNotFitException("Player not fit,expect:" + players.size() + " but:" + number);
+            }
         }
     }
 }

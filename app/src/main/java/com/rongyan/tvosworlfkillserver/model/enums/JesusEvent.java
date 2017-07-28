@@ -19,6 +19,8 @@ public enum JesusEvent {
     VOTE, //投票
     SPEECH, //发言
     STOP_SPEECH, //停止发言
-    GOOD_OR_NOT //预言家验人结果
-
+    GOOD_OR_NOT, //预言家验人结果
+    DEAD, //死了
+    POISON_DEAD ,//毒死
+    SHOOT_STATE
 }
