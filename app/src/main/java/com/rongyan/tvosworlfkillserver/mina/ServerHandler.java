@@ -54,4 +54,11 @@ public class ServerHandler extends IoHandlerAdapter {
         LogUtils.e(TAG, "messageSent", "ip:" + session.getRemoteAddress().toString()
                 + " sent" + message);
     }
+
+    @Override
+    public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
+        super.exceptionCaught(session, cause);
+        LogUtils.e(TAG, "exceptionCaught", cause.toString());
+        cause.printStackTrace();
+    }
 }

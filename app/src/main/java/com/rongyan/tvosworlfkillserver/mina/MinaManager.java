@@ -38,7 +38,7 @@ public class MinaManager {
     private static MinaManager INSTANCE = null;
 
     private MinaManager() {
-        initServer();
+        //initServer();
     }
 
     public static MinaManager getInstance() {
@@ -52,7 +52,7 @@ public class MinaManager {
         return INSTANCE;
     }
 
-    private void initServer() {
+    public void initServer() {
         SocketAcceptor acceptor = new NioSocketAcceptor();
         acceptor.getSessionConfig().setReadBufferSize(2048);
         acceptor.getSessionConfig().setIdleTime(IdleStatus.BOTH_IDLE, IDLE_TIMEOUT);

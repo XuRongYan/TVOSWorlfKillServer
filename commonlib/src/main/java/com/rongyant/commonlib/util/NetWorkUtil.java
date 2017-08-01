@@ -30,6 +30,9 @@ public class NetWorkUtil {
             e.printStackTrace();
         }
         InetAddress address;
+        if (networkInterfaces == null) {
+            return null;
+        }
         while (networkInterfaces.hasMoreElements()) {
             NetworkInterface networkInterface = networkInterfaces.nextElement();
             Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
