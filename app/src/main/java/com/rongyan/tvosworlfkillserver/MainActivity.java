@@ -18,7 +18,6 @@ import butterknife.BindView;
 public class MainActivity extends BaseActivity {
     @BindView(R.id.recyclerview)
     RecyclerView recyclerView;
-    private GameManager gameManager;
     private List<UserEntity> userEntities = new ArrayList<>();
     private PlayerAdapter adapter;
 

@@ -70,4 +70,6 @@ dependencies {
     }
     compile project(':commonlib')
     compile 'de.greenrobot:eventbus:3.0.0-beta1'
+    compile files('libs/slf4j-api-1.7.21.jar')
+    compile files('libs/mina-core-2.0.16.jar')
 }
