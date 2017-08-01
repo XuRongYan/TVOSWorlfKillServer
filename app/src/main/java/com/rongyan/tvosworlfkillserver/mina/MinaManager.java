@@ -26,7 +26,7 @@ import java.util.Map;
 public class MinaManager {
     private static final String TAG = "MinaManager";
     //ip地址与用户实体对应的map
-    private static Map<String, UserEntity> userEntityMap = new ArrayMap<>();
+    public static Map<String, UserEntity> userEntityMap = new ArrayMap<>();
     //30S后超时
     public static final int IDLE_TIMEOUT = 30;
     //15s发送一次心跳包

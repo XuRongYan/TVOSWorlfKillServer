@@ -44,6 +44,11 @@ public class UserEntity implements Serializable{
 
     }
 
+    public UserEntity(String username, int headImg) {
+        this.username = username;
+        this.headImg = headImg;
+    }
+
     public BaseState getState() {
         return state;
     }

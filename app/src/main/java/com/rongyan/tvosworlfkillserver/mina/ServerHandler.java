@@ -1,14 +1,14 @@
 package com.rongyan.tvosworlfkillserver.mina;
 
-import com.rongyan.model.entity.JesusEventEntity;
-import com.rongyan.model.entity.UserEventEntity;
-import com.rongyan.model.enums.JesusEvent;
-import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.entity.UserEntity;
+import com.rongyan.tvosworlfkillserver.MessageEvent;
 import com.rongyant.commonlib.util.LogUtils;
 
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
+
+import de.greenrobot.event.EventBus;
 
 /**
  * Created by XRY on 2017/8/1.
@@ -16,6 +16,7 @@ import org.apache.mina.core.session.IoSession;
 
 public class ServerHandler extends IoHandlerAdapter {
     private static final String TAG = "ServerHandler";
+    public static final String CONNECTED_PLAYER_UPDATED = "ip map updated";
 
     @Override
     public void sessionCreated(IoSession session) throws Exception {
@@ -36,6 +37,8 @@ public class ServerHandler extends IoHandlerAdapter {
         super.sessionClosed(session);
         LogUtils.e(TAG, "sessionClosed", "ip:" + session.getRemoteAddress().toString()
                 + " session closed");
+        MinaManager.userEntityMap.remove(session.getRemoteAddress().toString());
+        EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
     }
 
     @Override
@@ -50,8 +53,11 @@ public class ServerHandler extends IoHandlerAdapter {
         super.messageReceived(session, message);
         LogUtils.e(TAG, "messageReceived", "ip:" + session.getRemoteAddress().toString()
                 + " received" + message);
-        if (message instanceof UserEventEntity) {
-            session.write(new JesusEventEntity(RoleType.ANY, JesusEvent.GET));
+        if (message instanceof UserEntity) {
+            UserEntity userEntity = (UserEntity) message;
+            userEntity.setUserId(MinaManager.userEntityMap.size());
+            MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
+            EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
         }
     }
 
