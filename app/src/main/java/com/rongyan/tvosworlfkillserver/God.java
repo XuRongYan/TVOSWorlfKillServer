@@ -3,14 +3,14 @@ package com.rongyan.tvosworlfkillserver;
 import android.util.ArrayMap;
 
 import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
-import com.rongyan.tvosworlfkillserver.model.abstractinterface.BaseJesusState;
-import com.rongyan.tvosworlfkillserver.model.entity.JesusEventEntity;
-import com.rongyan.tvosworlfkillserver.model.entity.UserEntity;
-import com.rongyan.tvosworlfkillserver.model.entity.UserEventEntity;
-import com.rongyan.tvosworlfkillserver.model.enums.JesusEvent;
-import com.rongyan.tvosworlfkillserver.model.enums.RoleType;
-import com.rongyan.tvosworlfkillserver.model.state.DeadState;
-import com.rongyan.tvosworlfkillserver.model.state.jesusstate.DaytimeState;
+import com.rongyan.model.abstractinterface.BaseJesusState;
+import com.rongyan.model.entity.JesusEventEntity;
+import com.rongyan.model.entity.UserEntity;
+import com.rongyan.model.entity.UserEventEntity;
+import com.rongyan.model.enums.JesusEvent;
+import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.state.DeadState;
+import com.rongyan.model.state.jesusstate.DaytimeState;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

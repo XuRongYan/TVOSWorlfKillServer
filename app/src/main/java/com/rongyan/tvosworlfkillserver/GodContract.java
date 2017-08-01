@@ -1,6 +1,6 @@
 package com.rongyan.tvosworlfkillserver;
 
-import com.rongyan.tvosworlfkillserver.model.entity.UserEntity;
+import com.rongyan.model.entity.UserEntity;
 
 /**
  * Created by XRY on 2017/7/27.

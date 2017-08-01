@@ -1,5 +1,9 @@
 package com.rongyan.tvosworlfkillserver.mina;
 
+import com.rongyan.model.entity.JesusEventEntity;
+import com.rongyan.model.entity.UserEventEntity;
+import com.rongyan.model.enums.JesusEvent;
+import com.rongyan.model.enums.RoleType;
 import com.rongyant.commonlib.util.LogUtils;
 
 import org.apache.mina.core.service.IoHandlerAdapter;
@@ -46,6 +50,9 @@ public class ServerHandler extends IoHandlerAdapter {
         super.messageReceived(session, message);
         LogUtils.e(TAG, "messageReceived", "ip:" + session.getRemoteAddress().toString()
                 + " received" + message);
+        if (message instanceof UserEventEntity) {
+            session.write(new JesusEventEntity(RoleType.ANY, JesusEvent.GET));
+        }
     }
 
     @Override

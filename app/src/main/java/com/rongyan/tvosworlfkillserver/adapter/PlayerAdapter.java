@@ -4,7 +4,7 @@ import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 
 import com.rongyan.tvosworlfkillserver.R;
-import com.rongyan.tvosworlfkillserver.model.entity.UserEntity;
+import com.rongyan.model.entity.UserEntity;
 import com.rongyant.commonlib.CommonAdapter.CommonAdapter;
 import com.rongyant.commonlib.CommonAdapter.ViewHolder;
 
