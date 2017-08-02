@@ -27,6 +27,8 @@ public class MinaManager {
     private static final String TAG = "MinaManager";
     //ip地址与用户实体对应的map
     public static Map<String, UserEntity> userEntityMap = new ArrayMap<>();
+    //还活着的user
+    public static Map<String, UserEntity> liveUserMap = new ArrayMap<>();
     //30S后超时
     public static final int IDLE_TIMEOUT = 30;
     //15s发送一次心跳包

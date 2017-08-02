@@ -35,6 +35,10 @@ public abstract class CommonAdapter<T> extends RecyclerView.Adapter<ViewHolder> 
         this.recyclerView = recyclerView;
     }
 
+    public List<T> getList() {
+        return list;
+    }
+
     @Override
     public int getItemViewType(int position) {
         if (!hasHeaderView() && !hasFooterView()) {

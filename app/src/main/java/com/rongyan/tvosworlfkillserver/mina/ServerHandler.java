@@ -37,7 +37,7 @@ public class ServerHandler extends IoHandlerAdapter {
         super.sessionClosed(session);
         LogUtils.e(TAG, "sessionClosed", "ip:" + session.getRemoteAddress().toString()
                 + " session closed");
-        MinaManager.userEntityMap.remove(session.getRemoteAddress().toString());
+        MinaManager.liveUserMap.remove(session.getRemoteAddress().toString());
         EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
     }
 
@@ -57,6 +57,12 @@ public class ServerHandler extends IoHandlerAdapter {
             UserEntity userEntity = (UserEntity) message;
             userEntity.setUserId(MinaManager.userEntityMap.size());
             MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
+            MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);
+            session.write(userEntity);
+            if (MinaManager.userEntityMap.size() == 12) {
+                //通知LauncherAty切换界面选择游戏板子
+
+            }
             EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
         }
     }

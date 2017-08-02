@@ -14,10 +14,13 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="landscape"></activity>
+        <activity
+            android:name=".LaunchActivity"
             android:screenOrientation="landscape">
 
         </activity>
-        <activity android:name=".LaunchActivity"
+        <activity android:name=".activity.ConfigActivity"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -41,7 +41,7 @@ public class LaunchActivity extends BaseActivity {
     @Override
     protected void initViews(Bundle savedInstanceState) {
         tvServerIp.setText("服务器IP:" + NetWorkUtil.getHostIp());
-        tvConnectedPeople.setText("当前连接人数：" + MinaManager.userEntityMap.size());
+        tvConnectedPeople.setText("当前连接人数：" + MinaManager.liveUserMap.size());
     }
 
     @Override
@@ -62,6 +62,6 @@ public class LaunchActivity extends BaseActivity {
     @Subscribe(threadMode = ThreadMode.MainThread,sticky = true)
     public void onMessageEvent(MessageEvent event) {
         LogUtils.e(TAG, "onMessageEvent", event.toString());
-        tvConnectedPeople.setText("当前连接人数：" + MinaManager.userEntityMap.size());
+        tvConnectedPeople.setText("当前连接人数：" + MinaManager.liveUserMap.size());
     }
 }

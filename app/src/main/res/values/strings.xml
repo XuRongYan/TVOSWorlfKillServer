@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">TVOSWorlfKillServer</string>
+    <string name="string_kill_side">屠边模式</string>
+    <string name="string_kill_all">屠城模式</string>
+    <string name="string_teller">预言家</string>
+    <string name="string_witcher">女巫</string>
+    <string name="string_hunter">猎人</string>
+    <string name="string_idiot">白痴</string>
+    <string name="string_guard">守卫</string>
+    <string name="string_config_next">下一步</string>
+    <string name="god_not_enough">神民数量不够</string>
+    <string name="god_num_too_more">神民数量过多</string>
 </resources>

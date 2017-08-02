@@ -25,7 +25,6 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     //room
-    annotationProcessor 'android.arch.persistence.room:compiler:1.0.0-alpha5'
     //design
     //rxjava
     //butterknife
@@ -53,6 +52,7 @@ dependencies {
     compile project(':commonlib')
     compile files('libs/mina-core-2.0.16.jar')
     compile files('libs/slf4j-api-1.7.21.jar')
+    annotationProcessor 'android.arch.persistence.room:compiler:1.0.0-alpha5'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'android.arch.persistence.room:runtime:1.0.0-alpha5'
