@@ -11,6 +11,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.rongyan.tvosworlfkillserver.LaunchActivity;
 import com.rongyan.tvosworlfkillserver.R;
 import com.rongyan.tvosworlfkillserver.adapter.CheckGodAdapter;
 import com.rongyan.tvosworlfkillserver.base.BaseActivity;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import de.greenrobot.event.EventBus;
 
 public class ConfigActivity extends BaseActivity {
     @BindView(R.id.tv_game_mode)
@@ -136,7 +138,11 @@ public class ConfigActivity extends BaseActivity {
         } else if (godNum < villagerNum) {
             Toast.makeText(mContext, getString(R.string.god_not_enough), Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(mContext, "ok", Toast.LENGTH_SHORT).show();
+            Bundle bundle = new Bundle();
+            bundle.putInt("wolf", wolfNum);
+            bundle.putInt("villager", villagerNum);
+            goActivity(LaunchActivity.class);
+            EventBus.getDefault().post(checkGodAdapter.getList());
         }
     }
 

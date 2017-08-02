@@ -1,12 +1,11 @@
 package com.rongyan.tvosworlfkillserver.mina;
 
-import android.util.ArrayMap;
-
 import com.rongyan.model.entity.UserEntity;
 import com.rongyant.commonlib.util.LogUtils;
 import com.rongyant.commonlib.util.NetWorkUtil;
 
 import org.apache.mina.core.session.IdleStatus;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.keepalive.KeepAliveFilter;
@@ -17,6 +16,7 @@ import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,9 +26,11 @@ import java.util.Map;
 public class MinaManager {
     private static final String TAG = "MinaManager";
     //ip地址与用户实体对应的map
-    public static Map<String, UserEntity> userEntityMap = new ArrayMap<>();
+    public static Map<String, UserEntity> userEntityMap = new HashMap<>();
+
+    public static Map<String, IoSession> sessionMap = new HashMap<>();
     //还活着的user
-    public static Map<String, UserEntity> liveUserMap = new ArrayMap<>();
+    public static Map<String, UserEntity> liveUserMap = new HashMap<>();
     //30S后超时
     public static final int IDLE_TIMEOUT = 30;
     //15s发送一次心跳包

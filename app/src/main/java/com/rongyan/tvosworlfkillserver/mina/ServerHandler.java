@@ -55,12 +55,13 @@ public class ServerHandler extends IoHandlerAdapter {
                 + " received" + message);
         if (message instanceof UserEntity) {
             UserEntity userEntity = (UserEntity) message;
+            //为userEntity赋值id
             userEntity.setUserId(MinaManager.userEntityMap.size());
             MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);
+            MinaManager.sessionMap.put(session.getRemoteAddress().toString(), session);
             session.write(userEntity);
-            if (MinaManager.userEntityMap.size() == 12) {
-                //通知LauncherAty切换界面选择游戏板子
+            if (MinaManager.userEntityMap.size() == MinaManager.userEntityMap.size()) {
 
             }
             EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));

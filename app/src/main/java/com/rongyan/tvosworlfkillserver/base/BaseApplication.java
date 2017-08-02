@@ -2,6 +2,7 @@ package com.rongyan.tvosworlfkillserver.base;
 
 import android.app.Application;
 
+import com.rongyan.tvosworlfkillserver.GodProxy;
 import com.rongyan.tvosworlfkillserver.mina.MinaManager;
 
 /**
@@ -15,5 +16,6 @@ public class BaseApplication extends Application {
         super.onCreate();
         MinaManager instance = MinaManager.getInstance();
         instance.initServer();
+        new GodProxy();
     }
 }

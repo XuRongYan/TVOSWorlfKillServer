@@ -92,6 +92,7 @@ public class God implements GodContract {
 
     public void setState(BaseJesusState state) {
         this.state = state;
+
     }
 
     @Override
