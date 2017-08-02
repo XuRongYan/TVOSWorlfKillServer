@@ -16,6 +16,6 @@ public class BaseApplication extends Application {
         super.onCreate();
         MinaManager instance = MinaManager.getInstance();
         instance.initServer();
-        new GodProxy();
+        GodProxy.getInstance();
     }
 }

@@ -18,10 +18,22 @@ import de.greenrobot.event.ThreadMode;
  */
 
 public class GodProxy {
+    private static GodProxy INSTANCE = null;
     Collection<IoSession> values;
-    public GodProxy() {
+    private GodProxy() {
         EventBus.getDefault().register(this);
         values = MinaManager.sessionMap.values();
+    }
+
+    public static GodProxy getInstance() {
+        if (INSTANCE == null) {
+            synchronized (GodProxy.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new GodProxy();
+                }
+            }
+        }
+        return INSTANCE;
     }
 
     /**
