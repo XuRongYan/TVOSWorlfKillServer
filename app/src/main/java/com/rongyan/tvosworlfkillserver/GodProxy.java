@@ -1,7 +1,6 @@
 package com.rongyan.tvosworlfkillserver;
 
 import com.rongyan.model.entity.JesusEventEntity;
-import com.rongyan.model.entity.UserEventEntity;
 import com.rongyan.tvosworlfkillserver.mina.MinaManager;
 
 import org.apache.mina.core.session.IoSession;
@@ -47,15 +46,6 @@ public class GodProxy {
             IoSession next = iterator.next();
             next.write(jesusEventEntity);
         }
-    }
-
-    /**
-     * 代理收到用户发来的消息转发给上帝
-     * @param userEventEntity
-     */
-    @Subscribe(threadMode = ThreadMode.BackgroundThread)
-    public void onMessageEvent(UserEventEntity userEventEntity) {
-        EventBus.getDefault().post(userEventEntity);
     }
 
     public void unregister() {

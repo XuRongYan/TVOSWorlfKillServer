@@ -1,6 +1,7 @@
 package com.rongyan.tvosworlfkillserver.mina;
 
 import com.rongyan.model.entity.UserEntity;
+import com.rongyan.model.entity.UserEventEntity;
 import com.rongyan.tvosworlfkillserver.MessageEvent;
 import com.rongyant.commonlib.util.LogUtils;
 
@@ -65,6 +66,9 @@ public class ServerHandler extends IoHandlerAdapter {
 
             }
             EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
+        }
+        if (message instanceof UserEventEntity) {
+            EventBus.getDefault().post(message);
         }
     }
 
