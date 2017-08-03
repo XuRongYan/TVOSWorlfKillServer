@@ -61,12 +61,15 @@ public class ServerHandler extends IoHandlerAdapter {
         LogUtils.e(TAG, "messageReceived", "ip:" + session.getRemoteAddress().toString()
                 + " received" + message);
         if (message instanceof UserEntity) {
+            if (MinaManager.userEntityMap.containsKey(session.getRemoteAddress().toString())) {
+                return;
+            }
             UserEntity userEntity = (UserEntity) message;
             //为userEntity赋值id
             userEntity.setUserId(MinaManager.userEntityMap.size());
             //获取牌堆
             List<RoleType> roleTypeList = ConfigActivity.roleTypeList;
-            int randomNum = random.nextInt() % roleTypeList.size();
+            int randomNum = Math.abs(random.nextInt() % roleTypeList.size());
             //取随机值发牌
             userEntity.setRoleType(roleTypeList.get(randomNum));
             //添加索引

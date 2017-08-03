@@ -15,10 +15,11 @@ public class KeepAliveMessageFactoryImpl implements KeepAliveMessageFactory {
     public static final String HEART_BEAT_RESPONSE = "heart beat response";
 
     private static final String TAG = "KeepAliveMessageFactory";
+
     @Override
     public boolean isRequest(IoSession ioSession, Object o) {
-        LogUtils.e(TAG, "isRequest", "请求心跳包信息：" + o);
         if (o.equals(HEART_BEAT_REQUEST)) {
+            LogUtils.e(TAG, "isRequest", "请求心跳包信息：" + o);
             return true;
         }
         return false;
@@ -26,8 +27,8 @@ public class KeepAliveMessageFactoryImpl implements KeepAliveMessageFactory {
 
     @Override
     public boolean isResponse(IoSession ioSession, Object o) {
-        LogUtils.e(TAG, "isResponse", "响应心跳包信息：" + o);
         if (o.equals(HEART_BEAT_RESPONSE)) {
+            LogUtils.e(TAG, "isResponse", "响应心跳包信息：" + o);
             return true;
         }
         return false;

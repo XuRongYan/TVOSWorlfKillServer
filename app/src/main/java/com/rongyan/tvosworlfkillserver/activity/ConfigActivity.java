@@ -84,7 +84,7 @@ public class ConfigActivity extends BaseActivity {
                         break;
                 }
                 tvWolfNum.setText("狼人人数：" + wolfNum);
-                tvVillagerNum.setText("村民人数" + villagerNum);
+                tvVillagerNum.setText("村民人数：" + villagerNum);
             }
 
             @Override
@@ -139,22 +139,22 @@ public class ConfigActivity extends BaseActivity {
             GodCheck godCheck = checkGodAdapter.getList().get(i);
             if (godCheck.isCheck()) {
                 godNum++;
-            }
-            String godName = godCheck.getGodName();
-            if (godName.equals(getString(R.string.string_teller))) {
-                roleTypeList.add(RoleType.TELLER);
-            }
-            if (godName.equals(getString(R.string.string_witcher))) {
-                roleTypeList.add(RoleType.WITCH);
-            }
-            if (godName.equals(getString(R.string.string_hunter))) {
-                roleTypeList.add(RoleType.HUNTER);
-            }
-            if (godName.equals(getString(R.string.string_idiot))) {
-                roleTypeList.add(RoleType.IDIOT);
-            }
-            if (godName.equals(getString(R.string.string_guard))) {
-                roleTypeList.add(RoleType.GUARD);
+                String godName = godCheck.getGodName();
+                if (godName.equals(getString(R.string.string_teller))) {
+                    roleTypeList.add(RoleType.TELLER);
+                }
+                if (godName.equals(getString(R.string.string_witcher))) {
+                    roleTypeList.add(RoleType.WITCH);
+                }
+                if (godName.equals(getString(R.string.string_hunter))) {
+                    roleTypeList.add(RoleType.HUNTER);
+                }
+                if (godName.equals(getString(R.string.string_idiot))) {
+                    roleTypeList.add(RoleType.IDIOT);
+                }
+                if (godName.equals(getString(R.string.string_guard))) {
+                    roleTypeList.add(RoleType.GUARD);
+                }
             }
         }
         for (int i = 0; i < villagerNum; i++) {

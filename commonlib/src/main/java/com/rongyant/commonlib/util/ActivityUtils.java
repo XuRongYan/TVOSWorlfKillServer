@@ -34,4 +34,18 @@ public class ActivityUtils {
 
         transaction.commit();
     }
+
+    public static void replaceFragment(FragmentManager manager, Fragment to, int fgmId) {
+        FragmentTransaction transaction = manager.beginTransaction();
+        //遍历隐藏所有添加的fragment
+        for (Fragment fragment : manager.getFragments()) {
+            transaction.hide(fragment);
+        }
+        if (!to.isAdded()) { //若没有添加过
+            transaction.add(fgmId, to).commit();
+        } else { //若已经添加
+            transaction.show(to).commit();
+        }
+
+    }
 }
