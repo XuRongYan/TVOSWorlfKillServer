@@ -2,21 +2,31 @@ package com.rongyan.tvosworlfkillserver;
 
 import android.util.ArrayMap;
 
-import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
 import com.rongyan.model.abstractinterface.BaseJesusState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.entity.UserEventEntity;
+import com.rongyan.model.enums.DayTime;
 import com.rongyan.model.enums.JesusEvent;
 import com.rongyan.model.enums.RoleType;
 import com.rongyan.model.state.DeadState;
 import com.rongyan.model.state.jesusstate.DaytimeState;
+import com.rongyan.model.state.jesusstate.GuardCloseEyesState;
+import com.rongyan.model.state.jesusstate.GuardOpenEyesState;
+import com.rongyan.model.state.jesusstate.GuardProtectState;
+import com.rongyan.model.state.jesusstate.HunterCloseEyesState;
+import com.rongyan.model.state.jesusstate.HunterOpenEyesState;
+import com.rongyan.model.state.jesusstate.HunterShootState;
+import com.rongyan.model.state.jesusstate.TellerCloseEyesState;
+import com.rongyan.model.state.jesusstate.TellerGetState;
+import com.rongyan.model.state.jesusstate.TellerOpenEyesState;
+import com.rongyan.model.state.jesusstate.WitchChooseState;
+import com.rongyan.model.state.jesusstate.WitchCloseState;
+import com.rongyan.model.state.jesusstate.WitchOpenEyes;
+import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import de.greenrobot.event.EventBus;
 import de.greenrobot.event.Subscribe;
@@ -29,11 +39,11 @@ import de.greenrobot.event.ThreadMode;
 
 public class God implements GodContract {
     private static God INSTANCE = null;
-    private static List<RoleType> list = new ArrayList<>(); //牌堆
     private Map<Integer, UserEntity> players = new LinkedHashMap<>(); //玩家的集合
     private Map<UserEntity, Integer> votePool = new ArrayMap<>(); //投票池
     private Map<UserEntity, Integer> killPool = new ArrayMap<>(); //杀人池
     private Map<Integer, UserEntity> chiefCampaignMap = new LinkedHashMap<>();
+    private Map<Integer, UserEntity> deadPlayerMap = new LinkedHashMap<>();
     private static int wolfNum = 0;
     private static int villagerNum = 0;
     private static int tellerNum = 0;
@@ -48,26 +58,20 @@ public class God implements GodContract {
     private int tellId = -1; //预言家验人ID
     private int poisonId = -1; //毒人ID
     private int protectedId = -1; //守卫守人ID
-    private int shootId = -1;
+    private int shootId = -1; //开枪的Id
     private int prevProtectedId = -1; //记录上一次守卫守的人
     private boolean isIdiotVoted = false; //白痴是否被票
     private boolean isSave = false; //女巫是否选择救人
     private boolean hasPoison = true; //女巫是否有毒药
     private boolean hasLive = true; //女巫是否有解药
+    public static int dayNum = 0; //游戏进行的天数
+    public static DayTime dayTime = DayTime.NIGHT; //白天或者黑夜
     private BaseJesusState state = new DaytimeState();
-    Random random = new Random();
+
 
     private God(Map<Integer, UserEntity> players) {
         this.players = players;
         EventBus.getDefault().register(this);
-        //发牌
-        for (int i = 0; i < players.size(); i++) {
-            UserEntity userEntity = players.get(i);
-            EventBus.getDefault().register(userEntity);
-            int i1 = random.nextInt() % (12 - i);
-            userEntity.setRoleType(list.get(i1));
-            list.remove(i1);
-        }
     }
 
     /**
@@ -129,31 +133,45 @@ public class God implements GodContract {
         switch (eventEntity.getType()) {
             case KILL: //杀人
                 killPool.put(eventEntity.getSend(), eventEntity.getTarget());
-
+                if (killPool.size() == wolfNum) {
+                    //killPool.clear();
+                    changeState();
+                }
                 break;
             case VOTE: //票人
                 votePool.put(eventEntity.getSend(), eventEntity.getTarget());
+                if (votePool.size() == players.size() - deadPlayerMap.size()) {
+                    //votePool.clear();
+                    changeState();
+                }
                 break;
             case SHOOT: //开枪
                 shoot(eventEntity.getTarget());
+                changeState();
                 break;
             case GET: //获取身份
                 tellGoodOrNot();
+                changeState();
                 break;
             case SAVE:
                 isSave = true;
+                changeState();
                 break;
             case NOT_SAVE:
                 isSave = false;
+                changeState();
                 break;
             case POISON:
                 poisonId = eventEntity.getTarget();
+                changeState();
                 break;
             case PROTECT:
                 protectedId = eventEntity.getTarget();
+                changeState();
                 break;
             case CHIEF_CAMPAIGN:
                 chiefCampaignMap.put(chiefCampaignMap.size(), eventEntity.getSend());
+                changeState();
                 break;
             case NOT_CHIEF_CAMPAIGN:
                 break;
@@ -180,7 +198,27 @@ public class God implements GodContract {
     private void dead(int id) {
         if (id != -1) {
             players.get(id).setState(new DeadState());
+            deadPlayerMap.put(id, players.get(id));
         }
+    }
+
+    private void changeState() {
+        BaseJesusState next = state.next();
+        setState(next);
+        //没有守卫
+        if ((next instanceof GuardOpenEyesState || next instanceof GuardCloseEyesState || next instanceof GuardProtectState) && guardNum <= 0) {
+            changeState();
+        }
+        if ((next instanceof TellerOpenEyesState || next instanceof TellerCloseEyesState || next instanceof TellerGetState) && tellerNum <= 0) {
+            changeState();
+        }
+        if ((next instanceof WitchCloseState || next instanceof WitchChooseState || next instanceof WitchOpenEyes) && witchNum <= 0) {
+            changeState();
+        }
+        if ((next instanceof HunterOpenEyesState || next instanceof HunterCloseEyesState || next instanceof HunterShootState) && hunterNum <= 0) {
+            changeState();
+        }
+
     }
 
     public static class Builder {
@@ -228,27 +266,6 @@ public class God implements GodContract {
         public God build() throws PlayerNotFitException {
             int number = villagerNum + wolfNum + hunterNum + tellerNum + witchNum + idiotNum + guardNum;
             if (players.size() == number) {
-                for (int i = 0; i < villagerNum; i++) {
-                    list.add(RoleType.VILLAGER);
-                }
-                for (int i = 0; i < wolfNum; i++) {
-                    list.add(RoleType.WOLF);
-                }
-                for (int i = 0; i < tellerNum; i++) {
-                    list.add(RoleType.TELLER);
-                }
-                for (int i = 0; i < witchNum; i++) {
-                    list.add(RoleType.WITCH);
-                }
-                for (int i = 0; i < hunterNum; i++) {
-                    list.add(RoleType.HUNTER);
-                }
-                for (int i = 0; i < idiotNum; i++) {
-                    list.add(RoleType.IDIOT);
-                }
-                for (int i = 0; i < guardNum; i++) {
-                    list.add(RoleType.GUARD);
-                }
                 return getInstance(players);
             }
 

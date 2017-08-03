@@ -17,4 +17,9 @@ public class WitchChooseState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.SAVE, id));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new WitchCloseState();
+    }
 }

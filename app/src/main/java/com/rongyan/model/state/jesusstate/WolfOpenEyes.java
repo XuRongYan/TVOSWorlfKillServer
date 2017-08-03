@@ -17,4 +17,9 @@ public class WolfOpenEyes implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.OPEN_EYES));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new KillingState();
+    }
 }

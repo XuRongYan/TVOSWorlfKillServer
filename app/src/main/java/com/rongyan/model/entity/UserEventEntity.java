@@ -46,5 +46,12 @@ public class UserEventEntity implements Serializable {
         this.target = target;
     }
 
-
+    @Override
+    public String toString() {
+        return "UserEventEntity{" +
+                "send=" + send +
+                ", type=" + type +
+                ", target=" + target +
+                '}';
+    }
 }

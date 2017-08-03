@@ -51,4 +51,13 @@ public class JesusEventEntity implements Serializable{
     public void setTargetId(int targetId) {
         this.targetId = targetId;
     }
+
+    @Override
+    public String toString() {
+        return "JesusEventEntity{" +
+                "roleType=" + roleType +
+                ", event=" + event +
+                ", targetId=" + targetId +
+                '}';
+    }
 }

@@ -17,4 +17,9 @@ public class HunterOpenEyesState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.OPEN_EYES));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new HunterCloseEyesState();
+    }
 }

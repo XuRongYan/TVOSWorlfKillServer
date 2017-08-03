@@ -2,12 +2,17 @@ package com.rongyan.tvosworlfkillserver.mina;
 
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.entity.UserEventEntity;
+import com.rongyan.model.enums.RoleType;
 import com.rongyan.tvosworlfkillserver.MessageEvent;
+import com.rongyan.tvosworlfkillserver.activity.ConfigActivity;
 import com.rongyant.commonlib.util.LogUtils;
 
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
+
+import java.util.List;
+import java.util.Random;
 
 import de.greenrobot.event.EventBus;
 
@@ -18,6 +23,7 @@ import de.greenrobot.event.EventBus;
 public class ServerHandler extends IoHandlerAdapter {
     private static final String TAG = "ServerHandler";
     public static final String CONNECTED_PLAYER_UPDATED = "ip map updated";
+    private Random random = new Random();
 
     @Override
     public void sessionCreated(IoSession session) throws Exception {
@@ -58,6 +64,12 @@ public class ServerHandler extends IoHandlerAdapter {
             UserEntity userEntity = (UserEntity) message;
             //为userEntity赋值id
             userEntity.setUserId(MinaManager.userEntityMap.size());
+            //获取牌堆
+            List<RoleType> roleTypeList = ConfigActivity.roleTypeList;
+            int randomNum = random.nextInt() % roleTypeList.size();
+            //取随机值发牌
+            userEntity.setRoleType(roleTypeList.get(randomNum));
+            //添加索引
             MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.sessionMap.put(session.getRemoteAddress().toString(), session);

@@ -17,4 +17,9 @@ public class GuardProtectState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.PROTECT));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new GuardCloseEyesState();
+    }
 }

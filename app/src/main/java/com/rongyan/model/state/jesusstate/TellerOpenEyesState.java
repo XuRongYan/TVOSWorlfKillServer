@@ -17,4 +17,9 @@ public class TellerOpenEyesState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.OPEN_EYES));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new TellerGetState();
+    }
 }

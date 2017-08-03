@@ -17,4 +17,9 @@ public class TellerGetState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.GET));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new TellerCloseEyesState();
+    }
 }

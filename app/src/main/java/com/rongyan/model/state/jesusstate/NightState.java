@@ -17,4 +17,9 @@ public class NightState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.CLOSE_EYES));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return null;
+    }
 }

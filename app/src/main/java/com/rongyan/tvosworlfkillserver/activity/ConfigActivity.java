@@ -11,13 +11,16 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.rongyan.model.enums.RoleType;
 import com.rongyan.tvosworlfkillserver.LaunchActivity;
 import com.rongyan.tvosworlfkillserver.R;
 import com.rongyan.tvosworlfkillserver.adapter.CheckGodAdapter;
 import com.rongyan.tvosworlfkillserver.base.BaseActivity;
 import com.rongyan.tvosworlfkillserver.entity.GodCheck;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -37,6 +40,9 @@ public class ConfigActivity extends BaseActivity {
     RecyclerView recyclerGod;
     @BindView(R.id.btn_config_next)
     Button btnConfigNext;
+
+    List<RoleType> list = new ArrayList<>();
+    public static List<RoleType> roleTypeList;
 
     private GodCheck[] godChecks;
     private int wolfNum = 4;
@@ -127,11 +133,35 @@ public class ConfigActivity extends BaseActivity {
     }
 
     private void checkNum() {
+        roleTypeList = new ArrayList<>();
         int godNum = 0;
         for (int i = 0; i < checkGodAdapter.getList().size(); i++) {
-            if (checkGodAdapter.getList().get(i).isCheck()) {
+            GodCheck godCheck = checkGodAdapter.getList().get(i);
+            if (godCheck.isCheck()) {
                 godNum++;
             }
+            String godName = godCheck.getGodName();
+            if (godName.equals(getString(R.string.string_teller))) {
+                roleTypeList.add(RoleType.TELLER);
+            }
+            if (godName.equals(getString(R.string.string_witcher))) {
+                roleTypeList.add(RoleType.WITCH);
+            }
+            if (godName.equals(getString(R.string.string_hunter))) {
+                roleTypeList.add(RoleType.HUNTER);
+            }
+            if (godName.equals(getString(R.string.string_idiot))) {
+                roleTypeList.add(RoleType.IDIOT);
+            }
+            if (godName.equals(getString(R.string.string_guard))) {
+                roleTypeList.add(RoleType.GUARD);
+            }
+        }
+        for (int i = 0; i < villagerNum; i++) {
+            roleTypeList.add(RoleType.VILLAGER);
+        }
+        for (int i = 0; i < wolfNum; i++) {
+            roleTypeList.add(RoleType.WOLF);
         }
         if (godNum > villagerNum) {
             Toast.makeText(mContext, getString(R.string.god_num_too_more), Toast.LENGTH_SHORT).show();

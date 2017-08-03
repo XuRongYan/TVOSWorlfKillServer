@@ -17,4 +17,9 @@ public class VottingState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.VOTE));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new NightState();
+    }
 }

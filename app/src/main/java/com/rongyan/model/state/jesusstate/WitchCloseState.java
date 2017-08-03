@@ -17,4 +17,9 @@ public class WitchCloseState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.CLOSE_EYES));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new HunterOpenEyesState();
+    }
 }

@@ -19,5 +19,10 @@ public class KillingState implements BaseJesusState {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.KILL));
     }
 
+    @Override
+    public BaseJesusState next() {
+        return new WolfCloseEyes();
+    }
+
 
 }

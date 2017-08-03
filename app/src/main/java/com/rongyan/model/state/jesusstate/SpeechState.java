@@ -12,4 +12,9 @@ public class SpeechState implements BaseJesusState {
     public void send(int id) {
 
     }
+
+    @Override
+    public BaseJesusState next() {
+        return new VottingState();
+    }
 }

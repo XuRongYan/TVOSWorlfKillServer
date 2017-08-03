@@ -17,4 +17,9 @@ public class ChiefCampaignState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.CHIEF_CAMPAIGN));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return null;
+    }
 }

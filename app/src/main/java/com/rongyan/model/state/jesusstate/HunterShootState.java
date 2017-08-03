@@ -17,4 +17,9 @@ public class HunterShootState implements BaseJesusState {
     public void send(int id) {
         EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.SHOOT_STATE, id));
     }
+
+    @Override
+    public BaseJesusState next() {
+        return null;
+    }
 }
