@@ -69,7 +69,8 @@ public class MinaManager {
         acceptor.getFilterChain().addLast("heartbeat", heartBeatFilter);
         acceptor.setHandler(new ServerHandler());
         try {
-            acceptor.bind(new InetSocketAddress(NetWorkUtil.getHostIp(), PORT));
+            acceptor.bind(new InetSocketAddress("127.0.0.1", PORT));
+            //acceptor.bind(new InetSocketAddress(NetWorkUtil.getHostIp(), PORT));
         } catch (IOException e) {
             e.printStackTrace();
         }
