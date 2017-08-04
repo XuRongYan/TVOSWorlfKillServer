@@ -16,11 +16,14 @@ import java.util.Random;
 
 import de.greenrobot.event.EventBus;
 
+import static com.rongyan.tvosworlfkillserver.MessageEvent.START_GAME_MESSAGE;
+
 /**
  * Created by XRY on 2017/8/1.
  */
 
 public class ServerHandler extends IoHandlerAdapter {
+
     private static final String TAG = "ServerHandler";
     public static final String CONNECTED_PLAYER_UPDATED = "ip map updated";
     private Random random = new Random();
@@ -77,8 +80,9 @@ public class ServerHandler extends IoHandlerAdapter {
             MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.sessionMap.put(session.getRemoteAddress().toString(), session);
             session.write(userEntity);
-            if (MinaManager.userEntityMap.size() == MinaManager.userEntityMap.size()) {
-
+            //TODO 测试的时候将开启游戏的条件定为一个就可以，一定记得改回去。。MinaManager.userEntityMap.size()
+            if (MinaManager.userEntityMap.size() == 1) {
+                EventBus.getDefault().post(new MessageEvent(START_GAME_MESSAGE));
             }
             EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
         }

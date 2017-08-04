@@ -1,5 +1,7 @@
 package com.rongyan.model.state.jesusstate;
 
+import android.util.Log;
+
 import com.rongyan.model.abstractinterface.BaseJesusState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.enums.JesusEvent;
@@ -12,8 +14,10 @@ import de.greenrobot.event.EventBus;
  */
 
 public class GuardOpenEyesState implements BaseJesusState {
+    private static final String TAG = "GuardOpenEyesState";
     @Override
     public void send(int id) {
+        Log.e(TAG, "守卫请睁眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.OPEN_EYES));
     }
 

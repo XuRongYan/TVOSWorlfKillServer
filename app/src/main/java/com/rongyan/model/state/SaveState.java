@@ -1,6 +1,8 @@
 package com.rongyan.model.state;
 
 
+import android.util.Log;
+
 import com.rongyan.model.abstractinterface.BaseState;
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.entity.UserEventEntity;
@@ -13,6 +15,7 @@ import de.greenrobot.event.EventBus;
  */
 
 public class SaveState implements BaseState {
+    private static final String TAG = "SaveState";
     /**
      *
      * @param userEntity
@@ -21,8 +24,10 @@ public class SaveState implements BaseState {
     @Override
     public void send(UserEntity userEntity, int targetId) {
         if (targetId == 0) {
+            Log.e(TAG, "不救");
             EventBus.getDefault().post(new UserEventEntity(userEntity, UserEventType.NOT_SAVE, -1));
         } else {
+            Log.e(TAG, "救");
             EventBus.getDefault().post(new UserEventEntity(userEntity, UserEventType.SAVE, targetId));
         }
     }

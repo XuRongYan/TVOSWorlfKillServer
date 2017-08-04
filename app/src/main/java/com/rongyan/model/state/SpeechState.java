@@ -1,6 +1,8 @@
 package com.rongyan.model.state;
 
 
+import android.util.Log;
+
 import com.rongyan.model.abstractinterface.BaseState;
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.entity.UserEventEntity;
@@ -13,6 +15,7 @@ import de.greenrobot.event.EventBus;
  */
 
 public class SpeechState implements BaseState {
+    private static final String TAG = "SpeechState";
     /**
      * 停止发言
      * @param userEntity
@@ -20,6 +23,7 @@ public class SpeechState implements BaseState {
      */
     @Override
     public void send(UserEntity userEntity, int targetId) {
+        Log.e(TAG, userEntity.getUserId() + "号玩家开始发言");
         EventBus.getDefault().post(new UserEventEntity(userEntity, UserEventType.END_SPEECH, -1));
     }
 }

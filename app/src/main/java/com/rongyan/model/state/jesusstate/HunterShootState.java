@@ -1,6 +1,8 @@
 package com.rongyan.model.state.jesusstate;
 
 
+import android.util.Log;
+
 import com.rongyan.model.abstractinterface.BaseJesusState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.enums.JesusEvent;
@@ -13,8 +15,10 @@ import de.greenrobot.event.EventBus;
  */
 
 public class HunterShootState implements BaseJesusState {
+    private static final String TAG = "HunterShootState";
     @Override
     public void send(int id) {
+        Log.e(TAG, "猎人翻牌，请选择你想要枪杀的玩家号码");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.SHOOT_STATE, id));
     }
 

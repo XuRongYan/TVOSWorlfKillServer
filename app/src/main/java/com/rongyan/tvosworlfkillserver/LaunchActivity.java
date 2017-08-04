@@ -24,6 +24,9 @@ import de.greenrobot.event.EventBus;
 import de.greenrobot.event.Subscribe;
 import de.greenrobot.event.ThreadMode;
 
+import static com.rongyan.tvosworlfkillserver.MessageEvent.START_GAME_MESSAGE;
+import static com.rongyan.tvosworlfkillserver.mina.ServerHandler.CONNECTED_PLAYER_UPDATED;
+
 public class LaunchActivity extends BaseActivity {
     private static final String TAG = "LaunchActivity";
     @BindView(R.id.tv_server_ip)
@@ -114,10 +117,16 @@ public class LaunchActivity extends BaseActivity {
 
     }
 
-    @Subscribe(threadMode = ThreadMode.MainThread, sticky = true)
+    @Subscribe(threadMode = ThreadMode.MainThread)
     public void onMessageEvent(MessageEvent event) {
         LogUtils.e(TAG, "onMessageEvent", event.toString());
-        tvConnectedPeople.setText("当前连接人数：" + MinaManager.liveUserMap.size());
+        if (event.getMessage().equals(CONNECTED_PLAYER_UPDATED)) {
+
+            tvConnectedPeople.setText("当前连接人数：" + MinaManager.liveUserMap.size());
+        }
+        if (event.getMessage().equals(START_GAME_MESSAGE)) {
+            initGame();
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MainThread, sticky = true)

@@ -1,5 +1,6 @@
 package com.rongyan.tvosworlfkillserver;
 
+import android.os.AsyncTask;
 import android.util.ArrayMap;
 
 import com.rongyan.model.abstractinterface.BaseJesusState;
@@ -17,13 +18,18 @@ import com.rongyan.model.state.jesusstate.GuardProtectState;
 import com.rongyan.model.state.jesusstate.HunterCloseEyesState;
 import com.rongyan.model.state.jesusstate.HunterOpenEyesState;
 import com.rongyan.model.state.jesusstate.HunterShootState;
+import com.rongyan.model.state.jesusstate.KillingState;
+import com.rongyan.model.state.jesusstate.NightState;
 import com.rongyan.model.state.jesusstate.TellerCloseEyesState;
 import com.rongyan.model.state.jesusstate.TellerGetState;
 import com.rongyan.model.state.jesusstate.TellerOpenEyesState;
+import com.rongyan.model.state.jesusstate.VottingState;
+import com.rongyan.model.state.jesusstate.WatchCardState;
 import com.rongyan.model.state.jesusstate.WitchChooseState;
 import com.rongyan.model.state.jesusstate.WitchCloseState;
 import com.rongyan.model.state.jesusstate.WitchOpenEyes;
 import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
+import com.rongyant.commonlib.util.LogUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,12 +44,14 @@ import de.greenrobot.event.ThreadMode;
  */
 
 public class God implements GodContract {
+    private static final String TAG = "God";
     private static God INSTANCE = null;
     private Map<Integer, UserEntity> players = new LinkedHashMap<>(); //玩家的集合
     private Map<UserEntity, Integer> votePool = new ArrayMap<>(); //投票池
     private Map<UserEntity, Integer> killPool = new ArrayMap<>(); //杀人池
-    private Map<Integer, UserEntity> chiefCampaignMap = new LinkedHashMap<>();
-    private Map<Integer, UserEntity> deadPlayerMap = new LinkedHashMap<>();
+    private Map<Integer, UserEntity> chiefCampaignMap = new LinkedHashMap<>(); //竞选警长的玩家
+    private Map<Integer, UserEntity> deadPlayerMap = new LinkedHashMap<>(); //死掉的玩家
+    private Map<Integer, UserEntity> notCampaignMap = new LinkedHashMap<>(); //不上警的玩家
     private static int wolfNum = 0;
     private static int villagerNum = 0;
     private static int tellerNum = 0;
@@ -67,11 +75,14 @@ public class God implements GodContract {
     public static int dayNum = 0; //游戏进行的天数
     public static DayTime dayTime = DayTime.NIGHT; //白天或者黑夜
     private BaseJesusState state = new DaytimeState();
+    private StateAsyncTask mAsyncTask; //用于异步计时的游戏进程控制
 
 
     private God(Map<Integer, UserEntity> players) {
         this.players = players;
         EventBus.getDefault().register(this);
+        LogUtils.e(TAG, "onMessageEvent", "game start");
+        startGame();
     }
 
     /**
@@ -79,7 +90,7 @@ public class God implements GodContract {
      *
      * @return
      */
-    private static God getInstance(Map<Integer, UserEntity> players) {
+    public static God getInstance(Map<Integer, UserEntity> players) {
         if (INSTANCE == null) {
             synchronized (God.class) {
                 if (INSTANCE == null) {
@@ -94,9 +105,40 @@ public class God implements GodContract {
         return state;
     }
 
+    /**
+     * 初始化游戏数据
+     */
+    private void initGame() {
+        dayNum = 1; //游戏来到第一天
+        if (witchNum != 0) {
+            //若有女巫，初始化药剂
+            hasPoison = true;
+            hasLive = true;
+            speechingId = -1;
+        }
+        //清空投票和杀人池
+        votePool.clear();
+        killPool.clear();
+        killedId = -1;
+        tellId = -1;
+        poisonId = -1;
+        protectedId = -1;
+        shootId = -1;
+        prevProtectedId = protectedId;
+    }
+
     public void setState(BaseJesusState state) {
         this.state = state;
+        mAsyncTask = new StateAsyncTask();
+        mAsyncTask.execute(); //启动一个新的异步任务
+        onState(state);
+    }
 
+    private void onState(BaseJesusState state) {
+        if (state instanceof NightState) {
+            onNight();
+            return;
+        }
     }
 
     @Override
@@ -134,50 +176,70 @@ public class God implements GodContract {
             case KILL: //杀人
                 killPool.put(eventEntity.getSend(), eventEntity.getTarget());
                 if (killPool.size() == wolfNum) {
-                    //killPool.clear();
-                    changeState();
+                    cancelTask();
                 }
                 break;
             case VOTE: //票人
                 votePool.put(eventEntity.getSend(), eventEntity.getTarget());
                 if (votePool.size() == players.size() - deadPlayerMap.size()) {
-                    //votePool.clear();
-                    changeState();
+
+                    cancelTask();
                 }
                 break;
             case SHOOT: //开枪
                 shoot(eventEntity.getTarget());
-                changeState();
+
+                cancelTask();
                 break;
             case GET: //获取身份
                 tellGoodOrNot();
-                changeState();
+                cancelTask();
                 break;
             case SAVE:
                 isSave = true;
-                changeState();
+                cancelTask();
                 break;
             case NOT_SAVE:
                 isSave = false;
-                changeState();
+                cancelTask();
                 break;
             case POISON:
                 poisonId = eventEntity.getTarget();
-                changeState();
+                cancelTask();
                 break;
             case PROTECT:
                 protectedId = eventEntity.getTarget();
-                changeState();
+                cancelTask();
                 break;
             case CHIEF_CAMPAIGN:
                 chiefCampaignMap.put(chiefCampaignMap.size(), eventEntity.getSend());
-                changeState();
+                if ((notCampaignMap.size() + chiefCampaignMap.size())
+                        == (players.size() - deadPlayerMap.size())) {
+                    cancelTask();
+                }
                 break;
             case NOT_CHIEF_CAMPAIGN:
+                notCampaignMap.put(notCampaignMap.size(), eventEntity.getSend());
+                if ((notCampaignMap.size() + chiefCampaignMap.size())
+                        == (players.size() - deadPlayerMap.size())) {
+                    cancelTask();
+                }
                 break;
             case END_SPEECH:
                 break;
         }
+    }
+//    @Subscribe
+//    public void onMessageEvent(MessageEvent event) {
+//        if (event.getMessage().equals(MessageEvent.START_GAME_MESSAGE)) {
+//
+//        }
+//    }
+
+    private void startGame() {
+        setState(new WatchCardState());
+        state.send(0);
+        initGame();
     }
 
     /**
@@ -204,6 +266,9 @@ public class God implements GodContract {
 
     private void changeState() {
         BaseJesusState next = state.next();
+        if (mAsyncTask != null && !mAsyncTask.isCancelled()) {
+            mAsyncTask.cancel(true);
+        }
         setState(next);
         //没有守卫
         if ((next instanceof GuardOpenEyesState || next instanceof GuardCloseEyesState || next instanceof GuardProtectState) && guardNum <= 0) {
@@ -219,6 +284,27 @@ public class God implements GodContract {
             changeState();
         }
 
+    }
+
+    /**
+     * 入夜时初始化一些值
+     */
+    private void onNight() {
+        killPool.clear();
+        votePool.clear();
+    }
+
+    /**
+     * 白天时初始化一些值
+     */
+    private void onMorning() {
+
+    }
+
+    private void cancelTask() {
+        if (mAsyncTask != null) {
+            mAsyncTask.cancel(true);
+        }
     }
 
     public static class Builder {
@@ -265,13 +351,101 @@ public class God implements GodContract {
 
         public God build() throws PlayerNotFitException {
             int number = villagerNum + wolfNum + hunterNum + tellerNum + witchNum + idiotNum + guardNum;
-            if (players.size() == number) {
-                return getInstance(players);
+//            if (players.size() == number) {
+//                return getInstance(players);
+//            }
+//
+//            else {
+//                throw new PlayerNotFitException("Player not fit,expect:" + players.size() + " but:" + number);
+//            }
+            return getInstance(players);
+        }
+    }
+
+    public class StateAsyncTask extends AsyncTask<Void, Integer, Void> {
+        private static final String TAG = "StateAsyncTask";
+        public int stateDuration = 0;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (state instanceof WatchCardState) {
+                //看牌的持续时间
+                stateDuration = 10;
+            }
+            if (state instanceof NightState) {
+                //天黑请闭眼持续时间
+                stateDuration = 5;
+            }
+            if (state instanceof KillingState) {
+                //狼人杀人讨论
+                stateDuration = 60;
+            }
+            if (state instanceof WitchChooseState) {
+                //女巫行动
+                stateDuration = 30;
+            }
+            if (state instanceof VottingState) {
+                //投票
+                stateDuration = 10;
+            }
+            if (state instanceof TellerGetState) {
+                //预言家验人阶段
+                stateDuration = 15;
+            }
+            if (state instanceof HunterShootState) {
+                //猎人杀人阶段
+                stateDuration = 15;
+            }
+            if (state instanceof GuardProtectState) {
+                //守卫守人阶段
+                stateDuration = 30;
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void...params) {
+            for (int i = 0; i < stateDuration; i++) {
+                if (isCancelled()) {
+                    LogUtils.e(TAG, "onProgressUpdate", "truly cancelled");
+                    return null;
+                }
+                try {
+                    Thread.sleep(1000);
+                    //更新进度
+                    publishProgress((int)((i * 1.0 / stateDuration) * 100));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
-            else {
-                throw new PlayerNotFitException("Player not fit,expect:" + players.size() + " but:" + number);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            //完成了就切换状态
+            changeState();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+           super.onProgressUpdate(values);
+            if (isCancelled()) {
+                LogUtils.e(TAG, "onProgressUpdate", "truly cancelled");
+                return;
             }
+            //更新UI
+            LogUtils.e(TAG, "onProgressUpdate", values[0].toString());
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            //取消也切换状态
+            LogUtils.e(TAG, "onCancelled", "try to cancel task");
+            changeState();
         }
     }
 }

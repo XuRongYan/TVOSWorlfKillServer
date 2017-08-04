@@ -1,6 +1,8 @@
 package com.rongyan.model.state;
 
 
+import android.util.Log;
+
 import com.rongyan.model.abstractinterface.BaseState;
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.entity.UserEventEntity;
@@ -13,8 +15,10 @@ import de.greenrobot.event.EventBus;
  */
 
 public class ProtectState implements BaseState {
+    private static final String TAG = "ProtectState";
     @Override
     public void send(UserEntity userEntity, int targetId) {
+        Log.e(TAG, "守人");
         EventBus.getDefault().post(new UserEventEntity(userEntity, UserEventType.PROTECT, targetId));
     }
 }

@@ -5,6 +5,7 @@ package com.rongyan.tvosworlfkillserver;
  */
 
 public class MessageEvent {
+    public static final String START_GAME_MESSAGE = "start game";
     private String message;
 
     public MessageEvent(String message) {
