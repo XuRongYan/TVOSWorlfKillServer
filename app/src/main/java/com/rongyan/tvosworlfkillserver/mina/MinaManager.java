@@ -11,7 +11,6 @@ import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactor
 import org.apache.mina.filter.keepalive.KeepAliveFilter;
 import org.apache.mina.filter.keepalive.KeepAliveMessageFactory;
 import org.apache.mina.filter.keepalive.KeepAliveRequestTimeoutHandler;
-import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 
 import java.io.IOException;
@@ -39,6 +38,7 @@ public class MinaManager {
     public static final int PORT = 9800;
 
     private static MinaManager INSTANCE = null;
+    private NioSocketAcceptor acceptor;
 
     private MinaManager() {
         //initServer();
@@ -56,7 +56,8 @@ public class MinaManager {
     }
 
     public void initServer() {
-        SocketAcceptor acceptor = new NioSocketAcceptor();
+        acceptor = new NioSocketAcceptor();
+        acceptor.setReuseAddress(true); //避免重启时提示地址被占用
         acceptor.getSessionConfig().setReadBufferSize(2048);
         acceptor.getSessionConfig().setIdleTime(IdleStatus.BOTH_IDLE, IDLE_TIMEOUT);
         acceptor.getFilterChain().addLast("codec",
@@ -69,12 +70,18 @@ public class MinaManager {
         acceptor.getFilterChain().addLast("heartbeat", heartBeatFilter);
         acceptor.setHandler(new ServerHandler());
         try {
-            acceptor.bind(new InetSocketAddress("127.0.0.1", PORT));
-            //acceptor.bind(new InetSocketAddress(NetWorkUtil.getHostIp(), PORT));
+            //acceptor.bind(new InetSocketAddress("10.0.3.15", PORT));
+            acceptor.bind(new InetSocketAddress(NetWorkUtil.getHostIp(), PORT));
         } catch (IOException e) {
             e.printStackTrace();
         }
         LogUtils.e(TAG, "initServer", "server start on:" + NetWorkUtil.getHostIp() + ":" + PORT);
+
+    }
+
+    public void shutDownServer() {
+        acceptor.unbind();
+        acceptor.dispose(true);
 
     }
 }

@@ -18,4 +18,10 @@ public class BaseApplication extends Application {
         instance.initServer();
         GodProxy.getInstance();
     }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        MinaManager.getInstance().shutDownServer();
+    }
 }

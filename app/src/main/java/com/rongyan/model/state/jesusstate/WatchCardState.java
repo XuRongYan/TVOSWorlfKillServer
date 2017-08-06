@@ -11,7 +11,7 @@ import com.rongyan.model.abstractinterface.BaseJesusState;
 public class WatchCardState implements BaseJesusState {
     private static final String TAG = "WatchCardState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "各位玩家请看牌");
     }
 

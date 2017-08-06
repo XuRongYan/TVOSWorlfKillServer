@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class WolfOpenEyes implements BaseJesusState {
     private static final String TAG = "WolfOpenEyes";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "狼人请睁眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.OPEN_EYES));
     }

@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class ChiefCampaignState implements BaseJesusState {
     private static final String TAG = "ChiefCampaignState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "开始进行警长竞选，想上警的玩家请举手");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.CHIEF_CAMPAIGN));
     }

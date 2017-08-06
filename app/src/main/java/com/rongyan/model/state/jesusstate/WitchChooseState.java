@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class WitchChooseState implements BaseJesusState {
     private static final String TAG = "WitchChooseState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "女巫请选择要杀人还是救人");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.SAVE, id));
     }

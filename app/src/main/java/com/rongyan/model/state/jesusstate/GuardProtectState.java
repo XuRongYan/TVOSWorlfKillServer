@@ -17,9 +17,9 @@ import de.greenrobot.event.EventBus;
 public class GuardProtectState implements BaseJesusState {
     private static final String TAG = "GuardProtectState";
     @Override
-    public void send(int id) {
+    public void send(int...ids) {
         Log.e(TAG, "守卫请选择想守卫的玩家号码");
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.PROTECT));
+        EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.PROTECT, ids));
     }
 
     @Override

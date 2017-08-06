@@ -12,7 +12,7 @@ import com.rongyan.model.abstractinterface.BaseJesusState;
 public class SpeechState implements BaseJesusState {
     private static final String TAG = "SpeechState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "玩家发言中...");
     }
 

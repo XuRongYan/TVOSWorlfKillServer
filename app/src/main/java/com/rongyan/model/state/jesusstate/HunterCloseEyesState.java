@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class HunterCloseEyesState implements BaseJesusState {
     private static final String TAG = "HunterClosEyesState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "猎人请睁眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.CLOSE_EYES));
     }

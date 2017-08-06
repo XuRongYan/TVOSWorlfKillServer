@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class DaytimeState implements BaseJesusState {
     private static final String TAG = "DaytimeState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "天亮了");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.OPEN_EYES));
     }

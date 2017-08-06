@@ -10,7 +10,9 @@ import com.rongyan.model.entity.UserEventEntity;
 import com.rongyan.model.enums.DayTime;
 import com.rongyan.model.enums.JesusEvent;
 import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.message.ConfirmMessage;
 import com.rongyan.model.state.DeadState;
+import com.rongyan.model.state.PoisonDeadState;
 import com.rongyan.model.state.jesusstate.DaytimeState;
 import com.rongyan.model.state.jesusstate.GuardCloseEyesState;
 import com.rongyan.model.state.jesusstate.GuardOpenEyesState;
@@ -31,7 +33,9 @@ import com.rongyan.model.state.jesusstate.WitchOpenEyes;
 import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
 import com.rongyant.commonlib.util.LogUtils;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import de.greenrobot.event.EventBus;
@@ -76,13 +80,14 @@ public class God implements GodContract {
     public static DayTime dayTime = DayTime.NIGHT; //白天或者黑夜
     private BaseJesusState state = new DaytimeState();
     private StateAsyncTask mAsyncTask; //用于异步计时的游戏进程控制
+    private int confirmNum = 0;
 
 
     private God(Map<Integer, UserEntity> players) {
         this.players = players;
         EventBus.getDefault().register(this);
-        LogUtils.e(TAG, "onMessageEvent", "game start");
-        startGame();
+
+        //startGame();
     }
 
     /**
@@ -171,6 +176,17 @@ public class God implements GodContract {
     }
 
     @Subscribe(threadMode = ThreadMode.MainThread)
+    public void onMessageEvent(ConfirmMessage message) {
+        switch (message.getMessage()) {
+            case ConfirmMessage.CONFIRM_WATCH_CARD:
+                if (players.size() == ++confirmNum) {
+                    startGame();
+                }
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MainThread)
     public void onMessageEvent(UserEventEntity eventEntity) {
         switch (eventEntity.getType()) {
             case KILL: //杀人
@@ -237,6 +253,7 @@ public class God implements GodContract {
 //    }
 
     private void startGame() {
+        LogUtils.e(TAG, "onMessageEvent", "game start");
         setState(new WatchCardState());
         state.send(0);
         initGame();
@@ -283,7 +300,6 @@ public class God implements GodContract {
         if ((next instanceof HunterOpenEyesState || next instanceof HunterCloseEyesState || next instanceof HunterShootState) && hunterNum <= 0) {
             changeState();
         }
-
     }
 
     /**
@@ -362,6 +378,23 @@ public class God implements GodContract {
         }
     }
 
+    public int[] getAliveIds() {
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < players.size(); i++) {
+            UserEntity userEntity = players.get(i);
+            if (!(userEntity.getState() instanceof DeadState || userEntity.getState() instanceof PoisonDeadState)) {
+                list.add(i);
+            }
+        }
+        Integer[] array = new Integer[list.size()];
+        Integer[] integers = list.toArray(array);
+        int[] arrayInt = new int[integers.length];
+        for (int i = 0; i < integers.length; i++) {
+            arrayInt[i] = integers[i];
+        }
+        return arrayInt;
+    }
+
     public class StateAsyncTask extends AsyncTask<Void, Integer, Void> {
         private static final String TAG = "StateAsyncTask";
         public int stateDuration = 0;
@@ -401,6 +434,7 @@ public class God implements GodContract {
                 //守卫守人阶段
                 stateDuration = 30;
             }
+            state.send(getAliveIds());
         }
 
         @Override

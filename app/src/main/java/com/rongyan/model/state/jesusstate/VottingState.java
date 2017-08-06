@@ -17,9 +17,9 @@ import de.greenrobot.event.EventBus;
 public class VottingState implements BaseJesusState {
     private static final String TAG = "VottingState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "现在开始投票");
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.VOTE));
+        EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.VOTE, id));
     }
 
     @Override

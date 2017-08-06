@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class WitchOpenEyes implements BaseJesusState {
     private static final String TAG = "WitchOpenEyes";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "女巫请睁眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.OPEN_EYES));
     }

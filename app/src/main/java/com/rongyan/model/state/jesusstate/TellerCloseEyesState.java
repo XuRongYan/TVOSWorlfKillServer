@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class TellerCloseEyesState implements BaseJesusState {
     private static final String TAG = "TellerCloseEyesState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "预言家请闭眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.CLOSE_EYES));
     }

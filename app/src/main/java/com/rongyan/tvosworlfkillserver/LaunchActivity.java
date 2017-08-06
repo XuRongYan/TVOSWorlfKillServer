@@ -41,7 +41,7 @@ public class LaunchActivity extends BaseActivity {
     private boolean hasGuard = false;
     private int wolfNum = -1;
     private int villagerNum = -1;
-    private God god;
+    public static God god;
 
     @Override
     protected int getContentView() {
@@ -84,7 +84,7 @@ public class LaunchActivity extends BaseActivity {
     }
 
     private void initGame() {
-        Map<Integer, UserEntity> userEntityMap = new LinkedHashMap<>();
+        Map<Integer, UserEntity>                                       userEntityMap = new LinkedHashMap<>();
         Collection<UserEntity> values = MinaManager.userEntityMap.values();
         Iterator<UserEntity> iterator = values.iterator();
         while (iterator.hasNext()) {

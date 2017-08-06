@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class NightState implements BaseJesusState {
     private static final String TAG = "NightState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "天黑请闭眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.CLOSE_EYES));
     }

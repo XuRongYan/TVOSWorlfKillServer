@@ -5,6 +5,6 @@ package com.rongyan.model.abstractinterface;
  */
 
 public interface BaseJesusState {
-    void send(int id);
+    void send(int... id);
     BaseJesusState next();
 }

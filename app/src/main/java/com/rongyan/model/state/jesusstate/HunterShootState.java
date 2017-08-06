@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class HunterShootState implements BaseJesusState {
     private static final String TAG = "HunterShootState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "猎人翻牌，请选择你想要枪杀的玩家号码");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.SHOOT_STATE, id));
     }

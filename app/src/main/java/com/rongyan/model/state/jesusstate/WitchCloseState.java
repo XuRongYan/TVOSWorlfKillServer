@@ -17,7 +17,7 @@ import de.greenrobot.event.EventBus;
 public class WitchCloseState implements BaseJesusState {
     private static final String TAG = "WitchCloseState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "女巫请闭眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WITCH, JesusEvent.CLOSE_EYES));
     }

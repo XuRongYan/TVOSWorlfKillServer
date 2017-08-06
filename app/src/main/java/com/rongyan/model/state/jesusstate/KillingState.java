@@ -17,9 +17,9 @@ import de.greenrobot.event.EventBus;
 public class KillingState implements BaseJesusState {
     private static final String TAG = "KillingState";
     @Override
-    public void send(int id) {
+    public void send(int...id) {
         Log.e(TAG, "狼人请杀人");
-        EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.KILL));
+        EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.KILL, id));
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.rongyan.tvosworlfkillserver.mina;
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.entity.UserEventEntity;
 import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.message.ConfirmMessage;
 import com.rongyan.tvosworlfkillserver.MessageEvent;
 import com.rongyan.tvosworlfkillserver.activity.ConfigActivity;
 import com.rongyant.commonlib.util.LogUtils;
@@ -74,7 +75,8 @@ public class ServerHandler extends IoHandlerAdapter {
             List<RoleType> roleTypeList = ConfigActivity.roleTypeList;
             int randomNum = Math.abs(random.nextInt() % roleTypeList.size());
             //取随机值发牌
-            userEntity.setRoleType(roleTypeList.get(randomNum));
+            //userEntity.setRoleType(roleTypeList.get(randomNum));
+            userEntity.setRoleType(RoleType.WOLF);
             //添加索引
             MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);
@@ -87,6 +89,9 @@ public class ServerHandler extends IoHandlerAdapter {
             EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
         }
         if (message instanceof UserEventEntity) {
+            EventBus.getDefault().post(message);
+        }
+        if (message instanceof ConfirmMessage) {
             EventBus.getDefault().post(message);
         }
     }

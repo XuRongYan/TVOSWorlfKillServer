@@ -15,17 +15,17 @@ public class JesusEventEntity implements Serializable{
 
     private JesusEvent event;
 
-    private int targetId;
+    private int[] targetIds;
 
     public JesusEventEntity(RoleType roleType, JesusEvent event) {
         this.roleType = roleType;
         this.event = event;
     }
 
-    public JesusEventEntity(RoleType roleType, JesusEvent event, int targetId) {
+    public JesusEventEntity(RoleType roleType, JesusEvent event, int...targetIds) {
         this.roleType = roleType;
         this.event = event;
-        this.targetId = targetId;
+        this.targetIds = targetIds;
     }
 
     public RoleType getRoleType() {
@@ -44,12 +44,12 @@ public class JesusEventEntity implements Serializable{
         this.event = event;
     }
 
-    public int getTargetId() {
-        return targetId;
+    public int[] getTargetId() {
+        return targetIds;
     }
 
-    public void setTargetId(int targetId) {
-        this.targetId = targetId;
+    public void setTargetId(int[] targetId) {
+        this.targetIds = targetId;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class JesusEventEntity implements Serializable{
         return "JesusEventEntity{" +
                 "roleType=" + roleType +
                 ", event=" + event +
-                ", targetId=" + targetId +
+                ", targetId=" + targetIds +
                 '}';
     }
 }
