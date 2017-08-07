@@ -13,6 +13,8 @@ import com.rongyan.model.enums.RoleType;
 import com.rongyan.model.message.ConfirmMessage;
 import com.rongyan.model.state.DeadState;
 import com.rongyan.model.state.PoisonDeadState;
+import com.rongyan.model.state.jesusstate.ChampaignVoteState;
+import com.rongyan.model.state.jesusstate.ChiefCampaignState;
 import com.rongyan.model.state.jesusstate.DaytimeState;
 import com.rongyan.model.state.jesusstate.GuardCloseEyesState;
 import com.rongyan.model.state.jesusstate.GuardOpenEyesState;
@@ -22,6 +24,7 @@ import com.rongyan.model.state.jesusstate.HunterOpenEyesState;
 import com.rongyan.model.state.jesusstate.HunterShootState;
 import com.rongyan.model.state.jesusstate.KillingState;
 import com.rongyan.model.state.jesusstate.NightState;
+import com.rongyan.model.state.jesusstate.NotifyState;
 import com.rongyan.model.state.jesusstate.TellerCloseEyesState;
 import com.rongyan.model.state.jesusstate.TellerGetState;
 import com.rongyan.model.state.jesusstate.TellerOpenEyesState;
@@ -34,9 +37,16 @@ import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
 import com.rongyant.commonlib.util.LogUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.greenrobot.event.EventBus;
 import de.greenrobot.event.Subscribe;
@@ -86,7 +96,7 @@ public class God implements GodContract {
     private God(Map<Integer, UserEntity> players) {
         this.players = players;
         EventBus.getDefault().register(this);
-
+        //testGetMost();
         //startGame();
     }
 
@@ -134,6 +144,7 @@ public class God implements GodContract {
 
     public void setState(BaseJesusState state) {
         this.state = state;
+        cancelTask();
         mAsyncTask = new StateAsyncTask();
         mAsyncTask.execute(); //启动一个新的异步任务
         onState(state);
@@ -158,12 +169,7 @@ public class God implements GodContract {
 
     @Override
     public void checkEveryDayStatus() {
-        if (isSave && killedId == protectedId) { //同守同救
-            dead(killedId);
-        } else if (killedId != protectedId) { //
-            dead(killedId);
-        }
-        dead(poisonId);
+
 
 
     }
@@ -192,7 +198,8 @@ public class God implements GodContract {
             case KILL: //杀人
                 killPool.put(eventEntity.getSend(), eventEntity.getTarget());
                 if (killPool.size() == wolfNum) {
-                    cancelTask();
+                    //cancelTask();
+
                 }
                 break;
             case VOTE: //票人
@@ -251,6 +258,54 @@ public class God implements GodContract {
 //
 //        }
 //    }
+
+    /**
+     * 降序排列
+     * @param map
+     * @return
+     */
+    private List<UserEntity> getMost(Map<UserEntity, Integer> map) {
+        Set<UserEntity> userEntities = map.keySet();
+        Map<Integer, Integer> voteMap = new HashMap<>();
+        Iterator<UserEntity> iterator = userEntities.iterator();
+        while (iterator.hasNext()) {
+            UserEntity next = iterator.next();
+            voteMap.put(next.getUserId(), 0);
+        }
+        for (UserEntity userEntity : userEntities) {
+            Integer integer = voteMap.get(map.get(userEntity));
+            integer = integer + 1;
+            voteMap.put(map.get(userEntity), integer);
+        }
+        Collection<Integer> values = voteMap.values();
+        List<Integer> list = new ArrayList<>();
+        for (Integer value : values) {
+            list.add(value);
+        }
+        Collections.sort(list, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o2 - o1;
+            }
+        });
+        Integer integer = list.get(0); //获取最大值
+        List<UserEntity> resultList = new ArrayList<>();
+        for (UserEntity userEntity : userEntities) {
+            if (voteMap.get(userEntity.getUserId()) == integer) {
+                resultList.add(userEntity);
+            }
+        }
+        return resultList;
+    }
+
+    private void testGetMost() {
+        Map<UserEntity, Integer> map = new HashMap<>();
+        map.put(new UserEntity(1, "test1", 1), 2);
+        map.put(new UserEntity(2, "test2", 3), 3);
+        map.put(new UserEntity(3, "TEST3", 3), 2);
+        List<UserEntity> most = getMost(map);
+        LogUtils.e(TAG, "testGetMost", Arrays.toString(most.toArray()));
+    }
 
     private void startGame() {
         LogUtils.e(TAG, "onMessageEvent", "game start");
@@ -402,6 +457,15 @@ public class God implements GodContract {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            if (state instanceof DaytimeState) {
+                dayNum++;
+                if (dayNum == 1) {
+
+                } else {
+                    //若不是第一天,直接报夜
+                    setState(new NotifyState());
+                }
+            }
             if (state instanceof WatchCardState) {
                 //看牌的持续时间
                 stateDuration = 10;
@@ -433,6 +497,14 @@ public class God implements GodContract {
             if (state instanceof GuardProtectState) {
                 //守卫守人阶段
                 stateDuration = 30;
+            }
+            if (state instanceof ChiefCampaignState) {
+                //上警环节
+                stateDuration = 15;
+            }
+            if (state instanceof ChampaignVoteState) {
+                //竞选警长的投票
+                stateDuration = 10;
             }
             state.send(getAliveIds());
         }

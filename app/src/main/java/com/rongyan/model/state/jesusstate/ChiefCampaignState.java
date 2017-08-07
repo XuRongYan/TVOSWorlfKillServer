@@ -24,6 +24,6 @@ public class ChiefCampaignState implements BaseJesusState {
 
     @Override
     public BaseJesusState next() {
-        return new SpeechState();
+        return new ChampaignSpeechState();
     }
 }

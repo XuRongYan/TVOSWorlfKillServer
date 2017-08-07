@@ -102,6 +102,14 @@ public class UserEntity implements Serializable{
         return result;
     }
 
-
-
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                ", headImg=" + headImg +
+                ", roleType=" + roleType +
+                ", state=" + state +
+                '}';
+    }
 }

@@ -24,5 +24,7 @@ public enum JesusEvent implements Serializable{
     GOOD_OR_NOT, //预言家验人结果
     DEAD, //死了
     POISON_DEAD ,//毒死
-    SHOOT_STATE
+    SHOOT_STATE,
+    CHIEF_VOTE, //竞选投票
+    CHIEF_SPEECH //竞选发言
 }

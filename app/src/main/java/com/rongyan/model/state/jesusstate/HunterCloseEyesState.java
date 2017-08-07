@@ -24,6 +24,6 @@ public class HunterCloseEyesState implements BaseJesusState {
 
     @Override
     public BaseJesusState next() {
-        return null;
+        return new DaytimeState();
     }
 }
