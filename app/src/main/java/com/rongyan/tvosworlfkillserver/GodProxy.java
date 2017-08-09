@@ -2,7 +2,6 @@ package com.rongyan.tvosworlfkillserver;
 
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.tvosworlfkillserver.mina.MinaManager;
-import com.rongyant.commonlib.util.LogUtils;
 
 import org.apache.mina.core.session.IoSession;
 
@@ -43,7 +42,7 @@ public class GodProxy {
      */
     @Subscribe(threadMode = ThreadMode.BackgroundThread)
     public void onMessageEvent(JesusEventEntity jesusEventEntity) {
-        LogUtils.e(TAG, "onMessageEvent", "get message from god,detail:" + jesusEventEntity.toString());
+        //LogUtils.e(TAG, "onMessageEvent", "get message from god,detail:" + jesusEventEntity.toString());
         Iterator<IoSession> iterator = values.iterator();
         while (iterator.hasNext()) {
             IoSession next = iterator.next();

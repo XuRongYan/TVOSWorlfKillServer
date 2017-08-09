@@ -15,5 +15,5 @@ public interface GodContract {
 
 
 
-    void tellGoodOrNot(); //告诉预言家验人结果
+    void tellGoodOrNot(int id); //告诉预言家验人结果
 }

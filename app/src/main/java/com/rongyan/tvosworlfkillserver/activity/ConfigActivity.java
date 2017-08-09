@@ -26,6 +26,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import de.greenrobot.event.EventBus;
+import de.greenrobot.event.Subscribe;
+import de.greenrobot.event.ThreadMode;
 
 public class ConfigActivity extends BaseActivity {
     @BindView(R.id.tv_game_mode)
@@ -99,7 +101,14 @@ public class ConfigActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // TODO: add setContentView(...) invocation
+        EventBus.getDefault().register(this);
         ButterKnife.bind(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
     }
 
     private void initRecyclerView() {
@@ -172,6 +181,12 @@ public class ConfigActivity extends BaseActivity {
             bundle.putInt("wolf", wolfNum);
             bundle.putInt("villager", villagerNum);
             goActivity(LaunchActivity.class);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MainThread)
+    public void onMessageEvent(String string) {
+        if (string.equals("LaunchActivity start")) {
             EventBus.getDefault().post(checkGodAdapter.getList());
         }
     }

@@ -8,6 +8,7 @@ import android.widget.TextView;
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.tvosworlfkillserver.base.BaseActivity;
 import com.rongyan.tvosworlfkillserver.entity.GodCheck;
+import com.rongyan.tvosworlfkillserver.enums.GameMode;
 import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
 import com.rongyan.tvosworlfkillserver.mina.MinaManager;
 import com.rongyant.commonlib.util.LogUtils;
@@ -52,6 +53,7 @@ public class LaunchActivity extends BaseActivity {
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+        EventBus.getDefault().post("LaunchActivity start");
     }
 
     @Override
@@ -84,7 +86,7 @@ public class LaunchActivity extends BaseActivity {
     }
 
     private void initGame() {
-        Map<Integer, UserEntity>                                       userEntityMap = new LinkedHashMap<>();
+        Map<Integer, UserEntity> userEntityMap = new LinkedHashMap<>();
         Collection<UserEntity> values = MinaManager.userEntityMap.values();
         Iterator<UserEntity> iterator = values.iterator();
         while (iterator.hasNext()) {
@@ -93,7 +95,8 @@ public class LaunchActivity extends BaseActivity {
         }
         God.Builder builder = new God.Builder(userEntityMap)
                 .setVillagers(villagerNum)
-                .setWolves(wolfNum);
+                .setWolves(wolfNum)
+                .setMode(villagerNum > 2 ? GameMode.KILL_SIDE : GameMode.KILL_ALL);
         if (hasTeller) {
             builder.setTeller();
         }
@@ -129,7 +132,7 @@ public class LaunchActivity extends BaseActivity {
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MainThread, sticky = true)
+    @Subscribe(threadMode = ThreadMode.MainThread)
     public void onMessageEvent(List<GodCheck> event) {
         LogUtils.e(TAG, "onMessageEvent", event.toString());
         for (GodCheck godCheck :
@@ -137,18 +140,23 @@ public class LaunchActivity extends BaseActivity {
             String godName = godCheck.getGodName();
             if (godName.equals(getString(R.string.string_teller))) {
                 hasTeller = true;
+                continue;
             }
             if (godName.equals(getString(R.string.string_witcher))) {
                 hasWitch = true;
+                continue;
             }
             if (godName.equals(getString(R.string.string_hunter))) {
                 hasHunter = true;
+                continue;
             }
             if (godName.equals(getString(R.string.string_idiot))) {
                 hasIdiot = true;
+                continue;
             }
             if (godName.equals(getString(R.string.string_guard))) {
                 hasGuard = true;
+                continue;
             }
         }
     }

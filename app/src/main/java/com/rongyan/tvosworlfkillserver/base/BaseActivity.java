@@ -116,13 +116,13 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
 
-    public void goActivityForResult(Class<?> cls, int resultCode) {
+    public void goActivityForResult(Class<?> cls, int requestCode) {
         Intent intent = new Intent(this, cls);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startActivityForResult(intent, resultCode,
+            startActivityForResult(intent, requestCode,
                     ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
         } else {
-            startActivityForResult(intent, resultCode);
+            startActivityForResult(intent, requestCode);
         }
     }
 

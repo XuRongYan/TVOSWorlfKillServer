@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.util.ArrayMap;
 
 import com.rongyan.model.abstractinterface.BaseJesusState;
+import com.rongyan.model.abstractinterface.BaseState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.entity.UserEventEntity;
@@ -16,6 +17,7 @@ import com.rongyan.model.state.PoisonDeadState;
 import com.rongyan.model.state.jesusstate.ChampaignVoteState;
 import com.rongyan.model.state.jesusstate.ChiefCampaignState;
 import com.rongyan.model.state.jesusstate.DaytimeState;
+import com.rongyan.model.state.jesusstate.GameEndState;
 import com.rongyan.model.state.jesusstate.GuardCloseEyesState;
 import com.rongyan.model.state.jesusstate.GuardOpenEyesState;
 import com.rongyan.model.state.jesusstate.GuardProtectState;
@@ -33,11 +35,12 @@ import com.rongyan.model.state.jesusstate.WatchCardState;
 import com.rongyan.model.state.jesusstate.WitchChooseState;
 import com.rongyan.model.state.jesusstate.WitchCloseState;
 import com.rongyan.model.state.jesusstate.WitchOpenEyes;
+import com.rongyan.tvosworlfkillserver.enums.GameMode;
+import com.rongyan.tvosworlfkillserver.enums.GameResult;
 import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
 import com.rongyant.commonlib.util.LogUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -66,6 +69,7 @@ public class God implements GodContract {
     private Map<Integer, UserEntity> chiefCampaignMap = new LinkedHashMap<>(); //竞选警长的玩家
     private Map<Integer, UserEntity> deadPlayerMap = new LinkedHashMap<>(); //死掉的玩家
     private Map<Integer, UserEntity> notCampaignMap = new LinkedHashMap<>(); //不上警的玩家
+    private List<UserEntity> pkList;
     private static int wolfNum = 0;
     private static int villagerNum = 0;
     private static int tellerNum = 0;
@@ -73,6 +77,7 @@ public class God implements GodContract {
     private static int hunterNum = 0;
     private static int idiotNum = 0;
     private static int guardNum = 0;
+    private static GameMode mode = GameMode.KILL_SIDE; //游戏模式
     private int speechingId = -1; //正在发言
     public static final int GOOD = 1; //好人
     public static final int BAD = 0; //狼人
@@ -81,6 +86,8 @@ public class God implements GodContract {
     private int poisonId = -1; //毒人ID
     private int protectedId = -1; //守卫守人ID
     private int shootId = -1; //开枪的Id
+    private int voteId = -1;
+    private int killId = -1;
     private int prevProtectedId = -1; //记录上一次守卫守的人
     private boolean isIdiotVoted = false; //白痴是否被票
     private boolean isSave = false; //女巫是否选择救人
@@ -91,7 +98,11 @@ public class God implements GodContract {
     private BaseJesusState state = new DaytimeState();
     private StateAsyncTask mAsyncTask; //用于异步计时的游戏进程控制
     private int confirmNum = 0;
-
+    //活着的三方势力数量
+    private int liveWolfNum = 0;
+    private int liveGodNum = 0;
+    private int liveVillagerNum = 0;
+    private GameResult result;
 
     private God(Map<Integer, UserEntity> players) {
         this.players = players;
@@ -124,7 +135,7 @@ public class God implements GodContract {
      * 初始化游戏数据
      */
     private void initGame() {
-        dayNum = 1; //游戏来到第一天
+        dayNum = 0; //游戏来到第一天
         if (witchNum != 0) {
             //若有女巫，初始化药剂
             hasPoison = true;
@@ -142,18 +153,93 @@ public class God implements GodContract {
         prevProtectedId = protectedId;
     }
 
+    private boolean isGameEnd() {
+        getLiveNum();
+        //TODO 加上警长以后再加一个判断
+//        if (liveWolfNum >= (liveGodNum + liveVillagerNum)) {
+//            result = GameResult.WOLF_WIN;
+//            return true;
+//        } else
+        if (liveWolfNum == 0) {
+            result = GameResult.WOLF_WIN;
+            return true;
+        }
+
+        if (mode == GameMode.KILL_SIDE) {
+            if (liveGodNum == 0 || liveVillagerNum == 0) {
+                result = GameResult.WOLF_WIN;
+                return true;
+            }
+        } else {
+            if (liveVillagerNum == 0 && liveGodNum == 0) {
+                result = GameResult.WOLF_WIN;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 统计活着势力的数量
+     */
+    private void getLiveNum() {
+        Collection<UserEntity> values = players.values();
+        for (UserEntity value : values) {
+            BaseState state = value.getState();
+            //没死
+            if (!(state instanceof DeadState) && !(state instanceof PoisonDeadState)) {
+                RoleType roleType = value.getRoleType();
+                switch (roleType) {
+                    case VILLAGER:
+                        liveVillagerNum++;
+                        break;
+                    case WOLF:
+                        liveWolfNum++;
+                        break;
+                    default:
+                        liveGodNum++;
+                        break;
+                }
+            }
+        }
+    }
+
     public void setState(BaseJesusState state) {
         this.state = state;
         cancelTask();
-        mAsyncTask = new StateAsyncTask();
-        mAsyncTask.execute(); //启动一个新的异步任务
         onState(state);
+        state.send(getAliveIds());
+
     }
 
     private void onState(BaseJesusState state) {
         if (state instanceof NightState) {
+            if (dayNum >= 1) {
+                doOnGameEnd();
+            }
             onNight();
             return;
+        }
+        if (state instanceof DaytimeState) {
+            //dayNum++;
+            if (dayNum != 1) {
+                doOnGameEnd();
+            }
+            dayTime = DayTime.DAY_TIME;
+            LogUtils.e(TAG, "onNight", "第" + dayNum + "天日");
+        }
+        if (state instanceof GameEndState) {
+            release();
+        }
+    }
+
+    /**
+     * 若游戏结束
+     */
+    private void doOnGameEnd() {
+        if (isGameEnd()) {
+            LogUtils.e(TAG, "doOnGameEnd", "游戏结束" + (result == GameResult.WOLF_WIN ? "狼人" : "好人") + "阵营胜利");
+            setState(new GameEndState());
         }
     }
 
@@ -170,14 +256,13 @@ public class God implements GodContract {
     @Override
     public void checkEveryDayStatus() {
 
-
-
     }
 
 
     @Override
-    public void tellGoodOrNot() {
-        int goodOrNot = players.get(tellId).getRoleType() == RoleType.WOLF ? GOOD : BAD;
+    public void tellGoodOrNot(int id) {
+        tellId = id;
+        int goodOrNot = players.get(id).getRoleType() == RoleType.WOLF ? BAD : GOOD;
         EventBus.getDefault().post(new JesusEventEntity(RoleType.TELLER, JesusEvent.GOOD_OR_NOT, goodOrNot));
     }
 
@@ -187,8 +272,22 @@ public class God implements GodContract {
             case ConfirmMessage.CONFIRM_WATCH_CARD:
                 if (players.size() == ++confirmNum) {
                     startGame();
+                    mAsyncTask = new StateAsyncTask();
+                    mAsyncTask.execute(); //启动一个新的异步任务
+                    confirmNum = 0;
                 }
                 break;
+            case ConfirmMessage.CONFIRM:
+                //收到确认信号再进行下一步
+                if (++confirmNum == players.size() - deadPlayerMap.size()) { //若所有存活的玩家发出确认信号
+                    if (!(state instanceof GameEndState)) {
+                        mAsyncTask = new StateAsyncTask();
+                        mAsyncTask.execute(); //启动一个新的异步任务
+                    }
+                    confirmNum = 0;
+                }
+                break;
+
         }
     }
 
@@ -198,24 +297,32 @@ public class God implements GodContract {
             case KILL: //杀人
                 killPool.put(eventEntity.getSend(), eventEntity.getTarget());
                 if (killPool.size() == wolfNum) {
-                    //cancelTask();
-
+                    List<UserEntity> most = getMost(killPool);
+                    if (most.size() == 1) {
+                        killedId = most.get(0).getUserId();
+                    }
+                    cancelTask();
                 }
+
                 break;
             case VOTE: //票人
                 votePool.put(eventEntity.getSend(), eventEntity.getTarget());
                 if (votePool.size() == players.size() - deadPlayerMap.size()) {
-
+                    List<UserEntity> most = getMost(votePool);
+                    if (most.size() > 1) {
+                        pkList = most;
+                    } else {
+                        voteId = most.get(0).getUserId();
+                    }
                     cancelTask();
                 }
                 break;
             case SHOOT: //开枪
                 shoot(eventEntity.getTarget());
-
                 cancelTask();
                 break;
             case GET: //获取身份
-                tellGoodOrNot();
+                tellGoodOrNot(eventEntity.getTarget());
                 cancelTask();
                 break;
             case SAVE:
@@ -298,19 +405,10 @@ public class God implements GodContract {
         return resultList;
     }
 
-    private void testGetMost() {
-        Map<UserEntity, Integer> map = new HashMap<>();
-        map.put(new UserEntity(1, "test1", 1), 2);
-        map.put(new UserEntity(2, "test2", 3), 3);
-        map.put(new UserEntity(3, "TEST3", 3), 2);
-        List<UserEntity> most = getMost(map);
-        LogUtils.e(TAG, "testGetMost", Arrays.toString(most.toArray()));
-    }
-
     private void startGame() {
         LogUtils.e(TAG, "onMessageEvent", "game start");
         setState(new WatchCardState());
-        state.send(0);
+        //state.send(0);
         initGame();
     }
 
@@ -322,6 +420,8 @@ public class God implements GodContract {
             EventBus.getDefault().unregister(players.get(i));
         }
         EventBus.getDefault().unregister(this);
+        INSTANCE = null;
+        LogUtils.e(TAG, "release", "release resource");
     }
 
     private void shoot(int id) {
@@ -337,11 +437,15 @@ public class God implements GodContract {
     }
 
     private void changeState() {
+
         BaseJesusState next = state.next();
         if (mAsyncTask != null && !mAsyncTask.isCancelled()) {
             mAsyncTask.cancel(true);
         }
-        setState(next);
+        if (next != null) {
+            setState(next);
+            LogUtils.e(TAG, "changeState", "state has changed, state:" + next);
+        }
         //没有守卫
         if ((next instanceof GuardOpenEyesState || next instanceof GuardCloseEyesState || next instanceof GuardProtectState) && guardNum <= 0) {
             changeState();
@@ -363,9 +467,12 @@ public class God implements GodContract {
     private void onNight() {
         killPool.clear();
         votePool.clear();
+        dayTime = DayTime.NIGHT;
+        dayNum++;
+        LogUtils.e(TAG, "onNight", "第" + dayNum + "天夜");
     }
 
-    /**
+    /**d
      * 白天时初始化一些值
      */
     private void onMorning() {
@@ -417,6 +524,11 @@ public class God implements GodContract {
 
         public Builder setIdiot() {
             idiotNum = 1;
+            return this;
+        }
+
+        public Builder setMode(GameMode mode) {
+            God.mode = mode;
             return this;
         }
 
@@ -476,11 +588,11 @@ public class God implements GodContract {
             }
             if (state instanceof KillingState) {
                 //狼人杀人讨论
-                stateDuration = 60;
+                stateDuration = 10;
             }
             if (state instanceof WitchChooseState) {
                 //女巫行动
-                stateDuration = 30;
+                stateDuration = 10;
             }
             if (state instanceof VottingState) {
                 //投票
@@ -496,7 +608,7 @@ public class God implements GodContract {
             }
             if (state instanceof GuardProtectState) {
                 //守卫守人阶段
-                stateDuration = 30;
+                stateDuration = 10;
             }
             if (state instanceof ChiefCampaignState) {
                 //上警环节
@@ -506,11 +618,12 @@ public class God implements GodContract {
                 //竞选警长的投票
                 stateDuration = 10;
             }
-            state.send(getAliveIds());
+
         }
 
         @Override
         protected Void doInBackground(Void...params) {
+            LogUtils.e(TAG, "doInBackground", state + "do in background");
             for (int i = 0; i < stateDuration; i++) {
                 if (isCancelled()) {
                     LogUtils.e(TAG, "onProgressUpdate", "truly cancelled");

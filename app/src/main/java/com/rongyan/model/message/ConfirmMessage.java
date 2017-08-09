@@ -8,6 +8,7 @@ import java.io.Serializable;
 
 public class ConfirmMessage implements Serializable{
     public static final String CONFIRM_WATCH_CARD = "CONFIRM_WATCH_CARD";
+    public static final String CONFIRM = "CONFIRM";
 
     private int id;
     private String message;
