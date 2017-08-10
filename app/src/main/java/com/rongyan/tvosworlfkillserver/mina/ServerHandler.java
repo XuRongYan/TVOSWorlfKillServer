@@ -76,7 +76,7 @@ public class ServerHandler extends IoHandlerAdapter {
             int randomNum = Math.abs(random.nextInt() % roleTypeList.size());
             //取随机值发牌
             //userEntity.setRoleType(roleTypeList.get(randomNum));
-            userEntity.setRoleType(RoleType.TELLER);
+            userEntity.setRoleType(RoleType.HUNTER);
             //添加索引
             MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);

@@ -22,6 +22,7 @@ import com.rongyan.model.state.jesusstate.GuardCloseEyesState;
 import com.rongyan.model.state.jesusstate.GuardOpenEyesState;
 import com.rongyan.model.state.jesusstate.GuardProtectState;
 import com.rongyan.model.state.jesusstate.HunterCloseEyesState;
+import com.rongyan.model.state.jesusstate.HunterGetShootState;
 import com.rongyan.model.state.jesusstate.HunterOpenEyesState;
 import com.rongyan.model.state.jesusstate.HunterShootState;
 import com.rongyan.model.state.jesusstate.KillingState;
@@ -41,6 +42,7 @@ import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
 import com.rongyant.commonlib.util.LogUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -204,11 +206,44 @@ public class God implements GodContract {
         }
     }
 
+    //TODO 数组再扩展一位，用二进制表示药的几种情况，添加客户端这里记录时间的逻辑，判断女巫是否可以自救
     public void setState(BaseJesusState state) {
         this.state = state;
         cancelTask();
         onState(state);
-        state.send(getAliveIds());
+        if (state instanceof WitchChooseState) {
+            int[] aliveIds = getAliveIds();
+            int[] witchIds = new int[aliveIds.length + 2];
+
+            witchIds[0] = killedId;
+            int drugState = 0x00;
+            if (hasLive) {
+                drugState |= 0x01;
+            }
+            if (hasPoison) {
+                drugState |= 0x10;
+            }
+            witchIds[1] = drugState;
+            for (int i = 2; i < witchIds.length; i++) {
+                witchIds[i] = aliveIds[i - 2];
+            }
+            LogUtils.e(TAG, "witchids", Arrays.toString(witchIds));
+            LogUtils.e(TAG, "aliveIds", Arrays.toString(aliveIds));
+            state.send(witchIds);
+        } else if (state instanceof HunterShootState) {
+            boolean shootable;
+            if (-1 == killedId) {
+                shootable = false;
+            } else if (players.get(killedId).getRoleType() == RoleType.HUNTER && poisonId != killedId) {
+                shootable = true;
+            } else {
+                shootable = false;
+            }
+            state.send(shootable ? 1 : 0); //1表示可以开枪，0表示不能开枪
+        } else {
+            state.send(getAliveIds());
+
+        }
 
     }
 
@@ -326,7 +361,11 @@ public class God implements GodContract {
                 cancelTask();
                 break;
             case SAVE:
-                isSave = true;
+                if (hasLive) {
+                    isSave = true;
+                } else {
+                    isSave = false;
+                }
                 cancelTask();
                 break;
             case NOT_SAVE:
@@ -334,7 +373,11 @@ public class God implements GodContract {
                 cancelTask();
                 break;
             case POISON:
-                poisonId = eventEntity.getTarget();
+                if (hasPoison) {
+                    poisonId = eventEntity.getTarget();
+                } else {
+                    poisonId = -1;
+                }
                 cancelTask();
                 break;
             case PROTECT:
@@ -368,6 +411,7 @@ public class God implements GodContract {
 
     /**
      * 降序排列
+     *
      * @param map
      * @return
      */
@@ -472,7 +516,8 @@ public class God implements GodContract {
         LogUtils.e(TAG, "onNight", "第" + dayNum + "天夜");
     }
 
-    /**d
+    /**
+     * d
      * 白天时初始化一些值
      */
     private void onMorning() {
@@ -570,17 +615,17 @@ public class God implements GodContract {
         protected void onPreExecute() {
             super.onPreExecute();
             if (state instanceof DaytimeState) {
-                dayNum++;
                 if (dayNum == 1) {
 
                 } else {
                     //若不是第一天,直接报夜
                     setState(new NotifyState());
                 }
+                dayNum++;
             }
             if (state instanceof WatchCardState) {
                 //看牌的持续时间
-                stateDuration = 10;
+                stateDuration = 5;
             }
             if (state instanceof NightState) {
                 //天黑请闭眼持续时间
@@ -588,41 +633,44 @@ public class God implements GodContract {
             }
             if (state instanceof KillingState) {
                 //狼人杀人讨论
-                stateDuration = 10;
+                stateDuration = 5;
             }
             if (state instanceof WitchChooseState) {
                 //女巫行动
-                stateDuration = 10;
+                stateDuration = 5;
             }
             if (state instanceof VottingState) {
                 //投票
-                stateDuration = 10;
+                stateDuration = 5;
             }
             if (state instanceof TellerGetState) {
                 //预言家验人阶段
-                stateDuration = 15;
+                stateDuration = 5;
             }
             if (state instanceof HunterShootState) {
                 //猎人杀人阶段
-                stateDuration = 15;
+                stateDuration = 5;
             }
             if (state instanceof GuardProtectState) {
                 //守卫守人阶段
-                stateDuration = 10;
+                stateDuration = 5;
             }
             if (state instanceof ChiefCampaignState) {
                 //上警环节
-                stateDuration = 15;
+                stateDuration = 5;
             }
             if (state instanceof ChampaignVoteState) {
                 //竞选警长的投票
-                stateDuration = 10;
+                stateDuration = 5;
+            }
+            if (state instanceof HunterGetShootState) {
+                stateDuration = 5;
             }
 
         }
 
         @Override
-        protected Void doInBackground(Void...params) {
+        protected Void doInBackground(Void... params) {
             LogUtils.e(TAG, "doInBackground", state + "do in background");
             for (int i = 0; i < stateDuration; i++) {
                 if (isCancelled()) {
@@ -632,7 +680,7 @@ public class God implements GodContract {
                 try {
                     Thread.sleep(1000);
                     //更新进度
-                    publishProgress((int)((i * 1.0 / stateDuration) * 100));
+                    publishProgress((int) ((i * 1.0 / stateDuration) * 100));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -650,7 +698,7 @@ public class God implements GodContract {
 
         @Override
         protected void onProgressUpdate(Integer... values) {
-           super.onProgressUpdate(values);
+            super.onProgressUpdate(values);
             if (isCancelled()) {
                 LogUtils.e(TAG, "onProgressUpdate", "truly cancelled");
                 return;

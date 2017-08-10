@@ -26,5 +26,6 @@ public enum JesusEvent implements Serializable{
     POISON_DEAD ,//毒死
     SHOOT_STATE,
     CHIEF_VOTE, //竞选投票
-    CHIEF_SPEECH //竞选发言
+    CHIEF_SPEECH,//竞选发言
+    GET_SHOOT_STATE, //获取开枪状态
 }

@@ -18,7 +18,7 @@ public class HunterCloseEyesState implements BaseJesusState {
     private static final String TAG = "HunterClosEyesState";
     @Override
     public void send(int...id) {
-        Log.e(TAG, "猎人请睁眼");
+        Log.e(TAG, "猎人请闭眼");
         EventBus.getDefault().post(new JesusEventEntity(RoleType.HUNTER, JesusEvent.CLOSE_EYES));
     }
 

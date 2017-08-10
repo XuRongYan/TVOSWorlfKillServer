@@ -23,7 +23,7 @@ public class SaveState implements BaseState {
      */
     @Override
     public void send(UserEntity userEntity, int targetId) {
-        if (targetId == 0) {
+        if (targetId == -1) {
             Log.e(TAG, "不救");
             EventBus.getDefault().post(new UserEventEntity(userEntity, UserEventType.NOT_SAVE, -1));
         } else {
