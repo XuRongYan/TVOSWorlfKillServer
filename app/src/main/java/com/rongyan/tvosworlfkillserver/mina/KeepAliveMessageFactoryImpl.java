@@ -1,7 +1,5 @@
 package com.rongyan.tvosworlfkillserver.mina;
 
-import com.rongyant.commonlib.util.LogUtils;
-
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.keepalive.KeepAliveMessageFactory;
 
@@ -19,7 +17,7 @@ public class KeepAliveMessageFactoryImpl implements KeepAliveMessageFactory {
     @Override
     public boolean isRequest(IoSession ioSession, Object o) {
         if (o.equals(HEART_BEAT_REQUEST)) {
-            LogUtils.e(TAG, "isRequest", "请求心跳包信息：" + o);
+            //LogUtils.e(TAG, "isRequest", "请求心跳包信息：" + o);
             return true;
         }
         return false;
@@ -28,7 +26,7 @@ public class KeepAliveMessageFactoryImpl implements KeepAliveMessageFactory {
     @Override
     public boolean isResponse(IoSession ioSession, Object o) {
         if (o.equals(HEART_BEAT_RESPONSE)) {
-            LogUtils.e(TAG, "isResponse", "响应心跳包信息：" + o);
+            //LogUtils.e(TAG, "isResponse", "响应心跳包信息：" + o);
             return true;
         }
         return false;
@@ -36,13 +34,13 @@ public class KeepAliveMessageFactoryImpl implements KeepAliveMessageFactory {
 
     @Override
     public Object getRequest(IoSession ioSession) {
-        LogUtils.e(TAG, "getRequest", "请求预设信息:" + HEART_BEAT_REQUEST);
+        //LogUtils.e(TAG, "getRequest", "请求预设信息:" + HEART_BEAT_REQUEST);
         return HEART_BEAT_REQUEST;
     }
 
     @Override
     public Object getResponse(IoSession ioSession, Object o) {
-        LogUtils.e(TAG, "getResponse", "响应预设信息：" + HEART_BEAT_RESPONSE);
+        //LogUtils.e(TAG, "getResponse", "响应预设信息：" + HEART_BEAT_RESPONSE);
         return HEART_BEAT_RESPONSE;
     }
 }

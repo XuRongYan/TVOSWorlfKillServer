@@ -50,6 +50,7 @@ public class ConfigActivity extends BaseActivity {
     private int wolfNum = 4;
     private int villagerNum = 4;
     private CheckGodAdapter checkGodAdapter;
+    public static String selectedItem;
 
     @Override
     protected int getContentView() {
@@ -58,6 +59,7 @@ public class ConfigActivity extends BaseActivity {
 
     @Override
     protected void initViews(Bundle savedInstanceState) {
+
         godChecks = new GodCheck[]{new GodCheck(getString(R.string.string_teller), true),
                 new GodCheck(getString(R.string.string_witcher), true),
                 new GodCheck(getString(R.string.string_hunter), true),
@@ -66,7 +68,7 @@ public class ConfigActivity extends BaseActivity {
         spinnerPlayerNum.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedItem = (String) spinnerPlayerNum.getSelectedItem();
+                selectedItem = (String) spinnerPlayerNum.getSelectedItem();
                 switch (Integer.parseInt(selectedItem)) {
                     case 12:
                         tvGameMode.setText(getString(R.string.string_kill_side));

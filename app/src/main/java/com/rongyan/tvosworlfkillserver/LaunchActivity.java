@@ -114,10 +114,13 @@ public class LaunchActivity extends BaseActivity {
         }
         try {
             god = builder.build();
+            GodHolder.god = god;
         } catch (PlayerNotFitException e) {
             e.printStackTrace();
         }
 
+        goActivity(MainActivity.class);
+        finish();
     }
 
     @Subscribe(threadMode = ThreadMode.MainThread)

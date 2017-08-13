@@ -75,15 +75,15 @@ public class ServerHandler extends IoHandlerAdapter {
             List<RoleType> roleTypeList = ConfigActivity.roleTypeList;
             int randomNum = Math.abs(random.nextInt() % roleTypeList.size());
             //取随机值发牌
-            //userEntity.setRoleType(roleTypeList.get(randomNum));
-            userEntity.setRoleType(RoleType.HUNTER);
+            userEntity.setRoleType(roleTypeList.get(randomNum));
+            //userEntity.setRoleType(RoleType.HUNTER);
             //添加索引
             MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);
             MinaManager.sessionMap.put(session.getRemoteAddress().toString(), session);
             session.write(userEntity);
-            //TODO 测试的时候将开启游戏的条件定为一个就可以，一定记得改回去。。MinaManager.userEntityMap.size()
-            if (MinaManager.userEntityMap.size() == 1) {
+            //TODO 测试的时候将开启游戏的条件定为一个就可以，一定记得改回去。。Integer.parseInt(ConfigActivity.selectedItem)
+            if (MinaManager.userEntityMap.size() == 3) {
                 EventBus.getDefault().post(new MessageEvent(START_GAME_MESSAGE));
             }
             EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));

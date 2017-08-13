@@ -17,5 +17,7 @@ public enum  UserEventType implements Serializable{
     PROTECT, //守卫守人
     CHIEF_CAMPAIGN, //上警
     NOT_CHIEF_CAMPAIGN, //不上警
-    END_SPEECH //结束发言
+    END_SPEECH, //结束发言
+    CHOOSE_SEQUENCE, //选择发言顺序
+    SELF_DESTRUCTION, //自爆（只有狼人可以自爆）
 }

@@ -9,24 +9,21 @@ import android.view.View;
 import com.rongyan.tvosworlfkillserver.adapter.PlayerAdapter;
 import com.rongyan.tvosworlfkillserver.base.BaseActivity;
 import com.rongyan.model.entity.UserEntity;
+import com.rongyant.commonlib.util.LogUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 
 public class MainActivity extends BaseActivity {
+    private static final String TAG = "MainActivity";
     @BindView(R.id.recyclerview)
     RecyclerView recyclerView;
     private List<UserEntity> userEntities = new ArrayList<>();
     private PlayerAdapter adapter;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
+    private God god;
 
     @Override
     protected int getContentView() {
@@ -35,6 +32,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initViews(Bundle savedInstanceState) {
+        god = GodHolder.god;
         initUserEntities();
         initRecyclerView();
     }
@@ -55,9 +53,15 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initUserEntities() {
-        for (int i = 0; i < 12; i++) {
-            UserEntity entity = new UserEntity(i, "test" + i, R.mipmap.ic_launcher);
-            userEntities.add(entity);
+        Map<Integer, UserEntity> players = null;
+        if (god != null) {
+            players = god.getPlayers();
+        } else {
+            LogUtils.e(TAG, "initViews", "god is null");
+            finish();
+        }
+        for (int i = 0; i < players.size(); i++) {
+            userEntities.add(players.get(i));
         }
     }
 
@@ -66,6 +70,4 @@ public class MainActivity extends BaseActivity {
         PlayerAdapter adapter = new PlayerAdapter(this, userEntities, recyclerView);
         recyclerView.setAdapter(adapter);
     }
-
-
 }
