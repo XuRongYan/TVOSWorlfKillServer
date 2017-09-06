@@ -9,7 +9,6 @@ import com.rongyan.model.state.GiveChiefState;
 import com.rongyan.model.state.OpenEyesState;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
 import de.greenrobot.event.EventBus;
 
@@ -17,7 +16,7 @@ import de.greenrobot.event.EventBus;
  * Created by XRY on 2017/7/27.
  */
 
-public class UserEntity implements Serializable{
+public class UserEntity implements Serializable {
     private int userId;
 
     private String username;
@@ -37,7 +36,6 @@ public class UserEntity implements Serializable{
     private UserEntity prev = null;
 
     private boolean isChampaign = false; //是否上警，默认为false
-
 
 
     public UserEntity(int userId, String username, byte[] headImg) {
@@ -143,43 +141,11 @@ public class UserEntity implements Serializable{
 
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UserEntity that = (UserEntity) o;
-
-        if (userId != that.userId) return false;
-        if (speeching != that.speeching) return false;
-        if (username != null ? !username.equals(that.username) : that.username != null)
-            return false;
-        if (!Arrays.equals(headImg, that.headImg)) return false;
-        if (roleType != that.roleType) return false;
-        if (state != null ? !state.equals(that.state) : that.state != null) return false;
-        if (next != null ? !next.equals(that.next) : that.next != null) return false;
-        return prev != null ? prev.equals(that.prev) : that.prev == null;
-
-    }
-
-    @Override
     public String toString() {
         return "UserEntity{" +
                 "userId=" + userId +
                 ", username='" + username + '\'' +
                 ", roleType=" + roleType +
                 '}';
-    }
-
-    @Override
-    public int hashCode() {
-        int result = userId;
-        result = 31 * result + (username != null ? username.hashCode() : 0);
-        result = 31 * result + Arrays.hashCode(headImg);
-        result = 31 * result + (roleType != null ? roleType.hashCode() : 0);
-        result = 31 * result + (state != null ? state.hashCode() : 0);
-        result = 31 * result + (speeching ? 1 : 0);
-        result = 31 * result + (next != null ? next.hashCode() : 0);
-        result = 31 * result + (prev != null ? prev.hashCode() : 0);
-        return result;
     }
 }

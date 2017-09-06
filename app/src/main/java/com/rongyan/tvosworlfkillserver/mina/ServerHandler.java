@@ -82,7 +82,7 @@ public class ServerHandler extends IoHandlerAdapter {
             //取随机值发牌
             userEntity.setRoleType(roleTypeList.get(randomNum));
             //userEntity.setRoleType(RoleType.WOLF);
-            //roleTypeList.remove(randomNum);
+            roleTypeList.remove(randomNum);
             //userEntity.setRoleType(RoleType.HUNTER);
             //添加索引
             MinaManager.userEntityMap.put(remoteIp, userEntity);
@@ -90,7 +90,7 @@ public class ServerHandler extends IoHandlerAdapter {
             MinaManager.sessionMap.put(remoteIp, session);
             session.write(userEntity);
             //TODO 测试的时候将开启游戏的条件定为一个就可以，一定记得改回去。。Integer.parseInt(ConfigActivity.selectedItem)
-            if (MinaManager.userEntityMap.size() == 3) {
+            if (MinaManager.userEntityMap.size() == 2) {
                 EventBus.getDefault().post(new MessageEvent(START_GAME_MESSAGE));
             }
             EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));

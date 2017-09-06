@@ -32,4 +32,5 @@ public enum JesusEvent implements Serializable{
     CHOOSE_SEQUENCE, //选择发言顺序
     GIVE_CHIEF, //移交警徽
     IDIOT_VOTED, //白痴被票
+    GAME_OVER, //游戏结束
 }

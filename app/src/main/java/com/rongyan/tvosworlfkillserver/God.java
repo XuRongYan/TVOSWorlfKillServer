@@ -376,7 +376,6 @@ public class God implements GodContract {
         if (isGameEnd()) {
             LogUtils.e(TAG, "doOnGameEnd", "游戏结束" + (result == GameResult.WOLF_WIN ? "狼人" : "好人") + "阵营胜利");
             setState(new GameEndState());
-
             EventBus.getDefault().post(new GameResultMessage(result, players));
             releaseGod();
         } else {
@@ -396,8 +395,6 @@ public class God implements GodContract {
 
     @Override
     public void checkEveryDayStatus() {
-        dead(killedId);
-        dead(poisonId);
         if (killedId == -1 && poisonId == -1) {
             LogUtils.e(TAG, "checkEveryDayStatus", "昨夜是平安夜");
         } else if ((killedId != -1 && poisonId == -1) || (killedId == -1 && poisonId != -1)) {
@@ -412,6 +409,11 @@ public class God implements GodContract {
                 setState(new LastWordsState(killedId));
             }
         }
+        if (!(state instanceof LastWordsState)) {
+            dead(killedId);
+            dead(poisonId);
+        }
+
     }
 
 
@@ -584,15 +586,16 @@ public class God implements GodContract {
             synchronized (God.class) {
                 hasVote = true;
             }
-            chaMpaignVoteImpl();
+            champaignVoteImpl();
             cancelTask();
         }
     }
 
-    private void chaMpaignVoteImpl() {
+    private void champaignVoteImpl() {
         List<UserEntity> most = getMost(votePool);
         if (most.size() > 1 && pkList == null) {
             Map<Integer, UserEntity> pkMap = new HashMap<>();
+
             for (UserEntity userEntity : pkList) {
                 pkMap.put(userEntity.getUserId(), userEntity);
             }
@@ -1228,7 +1231,7 @@ public class God implements GodContract {
                 }
                 if (state instanceof LastWordsState) {
                     EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.STOP_SPEECH));
-
+                    dead(((LastWordsState) state).getId());
                 }
                 if (state instanceof SpeechState) {
                     //发言阶段的切换不由这个异步任务控制
@@ -1240,7 +1243,7 @@ public class God implements GodContract {
             } else if (state instanceof ChampaignVoteState && stateDuration != 0) {
                 synchronized (God.class) {
                     if (!hasVote) {
-                        chaMpaignVoteImpl();
+                        champaignVoteImpl();
                     } else {
                         hasVote = false;
                     }
@@ -1304,7 +1307,7 @@ public class God implements GodContract {
             } else if (state instanceof ChampaignVoteState && stateDuration != 0) {
                 synchronized (God.class) {
                     if (!hasVote) {
-                        chaMpaignVoteImpl();
+                        champaignVoteImpl();
                     } else {
                         hasVote = false;
                     }
@@ -1438,11 +1441,5 @@ public class God implements GodContract {
         }
     }
 
-    private class ConfirmListener {
 
-
-        public ConfirmListener() {
-            EventBus.getDefault().register(this);
-        }
-    }
 }
