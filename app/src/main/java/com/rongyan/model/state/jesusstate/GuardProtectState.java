@@ -7,6 +7,7 @@ import com.rongyan.model.abstractinterface.BaseJesusState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.enums.JesusEvent;
 import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.message.ToastMessage;
 
 import de.greenrobot.event.EventBus;
 
@@ -19,6 +20,7 @@ public class GuardProtectState implements BaseJesusState {
     @Override
     public void send(int...ids) {
         Log.e(TAG, "守卫请选择想守卫的玩家号码");
+        EventBus.getDefault().post(new ToastMessage("守卫请选择想守卫的玩家号码"));
         EventBus.getDefault().post(new JesusEventEntity(RoleType.GUARD, JesusEvent.PROTECT, ids));
     }
 

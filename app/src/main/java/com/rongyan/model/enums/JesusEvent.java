@@ -30,4 +30,6 @@ public enum JesusEvent implements Serializable{
     GET_SHOOT_STATE, //获取开枪状态
     YOU_ARE_CHIEF, //通知某人当选
     CHOOSE_SEQUENCE, //选择发言顺序
+    GIVE_CHIEF, //移交警徽
+    IDIOT_VOTED, //白痴被票
 }

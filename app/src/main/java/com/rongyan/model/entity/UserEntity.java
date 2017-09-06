@@ -4,6 +4,8 @@ package com.rongyan.model.entity;
 import com.rongyan.model.abstractinterface.BaseState;
 import com.rongyan.model.enums.RoleType;
 import com.rongyan.model.enums.UserEventType;
+import com.rongyan.model.state.DeadState;
+import com.rongyan.model.state.GiveChiefState;
 import com.rongyan.model.state.OpenEyesState;
 
 import java.io.Serializable;
@@ -34,6 +36,8 @@ public class UserEntity implements Serializable{
 
     private UserEntity prev = null;
 
+    private boolean isChampaign = false; //是否上警，默认为false
+
 
 
     public UserEntity(int userId, String username, byte[] headImg) {
@@ -46,6 +50,14 @@ public class UserEntity implements Serializable{
     public UserEntity(String username, byte[] headImg) {
         this.username = username;
         this.headImg = headImg;
+    }
+
+    public boolean isChampaign() {
+        return isChampaign;
+    }
+
+    public void setChampaign(boolean champaign) {
+        isChampaign = champaign;
     }
 
     /**
@@ -124,6 +136,9 @@ public class UserEntity implements Serializable{
 
     public void send(int targetId) {
         state.send(this, targetId);
+        if (state instanceof GiveChiefState) {
+            setState(new DeadState());
+        }
     }
 
 
@@ -152,10 +167,6 @@ public class UserEntity implements Serializable{
                 "userId=" + userId +
                 ", username='" + username + '\'' +
                 ", roleType=" + roleType +
-                ", state=" + state +
-                ", speeching=" + speeching +
-                ", next=" + next +
-                ", prev=" + prev +
                 '}';
     }
 

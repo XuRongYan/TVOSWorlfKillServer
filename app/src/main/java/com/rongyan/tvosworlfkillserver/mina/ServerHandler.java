@@ -48,7 +48,10 @@ public class ServerHandler extends IoHandlerAdapter {
         super.sessionClosed(session);
         LogUtils.e(TAG, "sessionClosed", "ip:" + session.getRemoteAddress().toString()
                 + " session closed");
-        MinaManager.liveUserMap.remove(session.getRemoteAddress().toString());
+        String remoteIp = session.getRemoteAddress().toString().split(":")[0];
+        MinaManager.userEntityMap.remove(remoteIp);
+        MinaManager.liveUserMap.remove(remoteIp);
+        MinaManager.sessionMap.remove(remoteIp);
         EventBus.getDefault().post(new MessageEvent(CONNECTED_PLAYER_UPDATED));
     }
 
@@ -65,9 +68,11 @@ public class ServerHandler extends IoHandlerAdapter {
         LogUtils.e(TAG, "messageReceived", "ip:" + session.getRemoteAddress().toString()
                 + " received" + message);
         if (message instanceof UserEntity) {
-            if (MinaManager.userEntityMap.containsKey(session.getRemoteAddress().toString())) {
+            if (MinaManager.userEntityMap.containsKey(session.getRemoteAddress().toString().split(":")[0])) {
+                session.write("该IP已被占用");
                 return;
             }
+            String remoteIp = session.getRemoteAddress().toString().split(":")[0];
             UserEntity userEntity = (UserEntity) message;
             //为userEntity赋值id
             userEntity.setUserId(MinaManager.userEntityMap.size());
@@ -76,11 +81,13 @@ public class ServerHandler extends IoHandlerAdapter {
             int randomNum = Math.abs(random.nextInt() % roleTypeList.size());
             //取随机值发牌
             userEntity.setRoleType(roleTypeList.get(randomNum));
+            //userEntity.setRoleType(RoleType.WOLF);
+            //roleTypeList.remove(randomNum);
             //userEntity.setRoleType(RoleType.HUNTER);
             //添加索引
-            MinaManager.userEntityMap.put(session.getRemoteAddress().toString(), userEntity);
-            MinaManager.liveUserMap.put(session.getRemoteAddress().toString(), userEntity);
-            MinaManager.sessionMap.put(session.getRemoteAddress().toString(), session);
+            MinaManager.userEntityMap.put(remoteIp, userEntity);
+            MinaManager.liveUserMap.put(remoteIp, userEntity);
+            MinaManager.sessionMap.put(remoteIp, session);
             session.write(userEntity);
             //TODO 测试的时候将开启游戏的条件定为一个就可以，一定记得改回去。。Integer.parseInt(ConfigActivity.selectedItem)
             if (MinaManager.userEntityMap.size() == 3) {

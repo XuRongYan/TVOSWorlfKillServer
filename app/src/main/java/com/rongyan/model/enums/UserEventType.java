@@ -20,4 +20,8 @@ public enum  UserEventType implements Serializable{
     END_SPEECH, //结束发言
     CHOOSE_SEQUENCE, //选择发言顺序
     SELF_DESTRUCTION, //自爆（只有狼人可以自爆）
+    GIVE_CHIEF, //给警徽
+    NOT_GIVE_CHIEF, //不给警徽
+    RETURN_WATER, //退水
+    CHIEF_VOTE, //警上投票
 }

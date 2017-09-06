@@ -7,6 +7,7 @@ import com.rongyan.model.abstractinterface.BaseJesusState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.enums.JesusEvent;
 import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.message.ToastMessage;
 
 import de.greenrobot.event.EventBus;
 
@@ -19,6 +20,7 @@ public class KillingState implements BaseJesusState {
     @Override
     public void send(int...id) {
         Log.e(TAG, "狼人请杀人");
+        EventBus.getDefault().post(new ToastMessage("狼人请杀人"));
         EventBus.getDefault().post(new JesusEventEntity(RoleType.WOLF, JesusEvent.KILL, id));
     }
 

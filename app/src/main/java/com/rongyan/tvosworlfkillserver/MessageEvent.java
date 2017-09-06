@@ -6,6 +6,7 @@ package com.rongyan.tvosworlfkillserver;
 
 public class MessageEvent {
     public static final String START_GAME_MESSAGE = "start game";
+    public static final String SHOW_POP_END_GAME = "SHOW_POP_END_GAME";
     private String message;
 
     public MessageEvent(String message) {

@@ -16,5 +16,6 @@ public class KeepAliveRequestTimeoutHandlerImpl implements KeepAliveRequestTimeo
     @Override
     public void keepAliveRequestTimedOut(KeepAliveFilter keepAliveFilter, IoSession ioSession) throws Exception {
         LogUtils.e(TAG, "keepAliveRequestTimedOut", ioSession.getRemoteAddress().toString() + "timeout");
+        ioSession.closeNow();
     }
 }

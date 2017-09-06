@@ -7,6 +7,7 @@ import com.rongyan.model.abstractinterface.BaseJesusState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.enums.JesusEvent;
 import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.message.ToastMessage;
 
 import de.greenrobot.event.EventBus;
 
@@ -19,6 +20,7 @@ public class ChiefCampaignState implements BaseJesusState {
     @Override
     public void send(int...id) {
         Log.e(TAG, "开始进行警长竞选，想上警的玩家请举手");
+        EventBus.getDefault().post(new ToastMessage("开始进行警长竞选，想上警的玩家请举手"));
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.CHIEF_CAMPAIGN));
     }
 

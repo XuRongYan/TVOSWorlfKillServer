@@ -14,6 +14,7 @@ import com.rongyan.model.enums.RoleType;
 import com.rongyan.model.enums.Sequential;
 import com.rongyan.model.enums.SpeechSequence;
 import com.rongyan.model.message.ConfirmMessage;
+import com.rongyan.model.message.ToastMessage;
 import com.rongyan.model.state.DeadState;
 import com.rongyan.model.state.PoisonDeadState;
 import com.rongyan.model.state.VoteState;
@@ -31,8 +32,10 @@ import com.rongyan.model.state.jesusstate.HunterGetShootState;
 import com.rongyan.model.state.jesusstate.HunterOpenEyesState;
 import com.rongyan.model.state.jesusstate.HunterShootState;
 import com.rongyan.model.state.jesusstate.KillingState;
+import com.rongyan.model.state.jesusstate.LastWordsState;
 import com.rongyan.model.state.jesusstate.NightState;
 import com.rongyan.model.state.jesusstate.NotifyState;
+import com.rongyan.model.state.jesusstate.SpeechState;
 import com.rongyan.model.state.jesusstate.TellerCloseEyesState;
 import com.rongyan.model.state.jesusstate.TellerGetState;
 import com.rongyan.model.state.jesusstate.TellerOpenEyesState;
@@ -44,16 +47,15 @@ import com.rongyan.model.state.jesusstate.WitchOpenEyes;
 import com.rongyan.tvosworlfkillserver.enums.GameMode;
 import com.rongyan.tvosworlfkillserver.enums.GameResult;
 import com.rongyan.tvosworlfkillserver.exceptions.PlayerNotFitException;
+import com.rongyan.tvosworlfkillserver.message.GameResultMessage;
 import com.rongyant.commonlib.util.LogUtils;
 import com.rongyant.commonlib.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,12 +68,28 @@ import de.greenrobot.event.ThreadMode;
 
 /**
  * 目前来看有以下几个问题：
- * 1.连接终端过多时，家庭的路由器可能承担不了如此巨大的开销，可能网络会因此崩溃 （不知道怎么解决）
- * 2.长时间不操作客户端可能会出现ANR （不知道原因在哪）
+ * 1.连接终端过多时，家庭的路由器可能承担不了如此巨大的开销，可能网络会因此崩溃 （好像暂时不用考虑了）
+ * 2.长时间不操作客户端可能会出现ANR （已解决，原因是service）
  * 3.性能比较差的手机收到信号后的响应会很慢（也有网络原因），很可能造成游戏进度阻塞或者不同步
- * 4.游戏进程的控制有错误，发言这一块，要将map也传进去
- * 5.要添加一个遗言阶段
+ * 4.游戏进程的控制有错误，发言这一块，要将map也传进去(已解决)
+ * 5.要添加一个遗言阶段 （已解决）
  * 6.玩家在拿到牌的时候应该要知道自己的号码 (已解决)
+ * 7.死人的时候向客户端发消息，客户端进行相应的处理（）已解决
+ * 8.警长的选票（1.5票）（已解决）
+ * 9.警长死亡的时候移交警徽(已解决)
+ * 10.警上可以选择退水（已解决）
+ * 11.狼人可以自爆，自爆直接进入黑夜(已解决)
+ * 12.service ANR（已解决）
+ * 13.发言流程有问题（已解决）
+ * 14.已经上警的玩家应不参加投票（已解决）
+ * 15.getMost算法有问题(解决并优化)
+ * 16.报夜阶段没有日志提示(已解决)
+ * 17.不显示自爆按钮(已解决)
+ * 18.开始白天发言的时候不发言（已解决）
+ * 19.getNear算法有问题（已解决）
+ * 20.添加弃票逻辑
+ * 21.添加死亡界面
+ * 22.完善神的功能（白痴）
  */
 
 
@@ -108,6 +126,7 @@ public class God implements GodContract {
     private int poisonId = -1; //毒人ID
     private int protectedId = -1; //守卫守人ID
     private int shootId = -1; //开枪的Id
+    private int idiotId = -1;
     private int voteId = -1;
     private int killId = -1;
     private int chiefId = -1; //警长Id
@@ -131,6 +150,9 @@ public class God implements GodContract {
     private SpeechSequence speechSequence = SpeechSequence.TIME;
     private int hasSpeechNum = 0; //已经发言过的人
     private Random random = new Random();
+    private BaseJesusState lastState;
+    private boolean canSelfDestruction = true; //是否可以自爆
+    private boolean hasVote = false;
 
 
     private God(Map<Integer, UserEntity> players) {
@@ -140,6 +162,9 @@ public class God implements GodContract {
             //定发言顺序
             this.players.get(i).setNext(players.get((i + 1) % players.size()));
             this.players.get(i).setPrev(players.get((players.size() - 1 + i) % players.size()));
+            if (players.get(i).getRoleType() == RoleType.IDIOT) {
+                idiotId = i;
+            }
         }
         startGame();
     }
@@ -233,6 +258,8 @@ public class God implements GodContract {
     }
 
     public void setState(BaseJesusState state) {
+
+        lastState = this.state;
         this.state = state;
         cancelTask();
         onState(state);
@@ -240,7 +267,7 @@ public class God implements GodContract {
             int[] aliveIds = getAliveIds();
             int[] witchIds = new int[aliveIds.length + 2];
 
-            witchIds[0] = killedId;
+            witchIds[0] = killedId;  //第0位放被杀的id
             int drugState = 0x00;
             if (hasLive) {
                 drugState |= 0x01;
@@ -248,7 +275,8 @@ public class God implements GodContract {
             if (hasPoison) {
                 drugState |= 0x10;
             }
-            witchIds[1] = drugState;
+            witchIds[1] = drugState; //第1位放药的数量
+            //后面几位放活着人的id
             for (int i = 2; i < witchIds.length; i++) {
                 witchIds[i] = aliveIds[i - 2];
             }
@@ -271,18 +299,32 @@ public class God implements GodContract {
                 speechSequence = SpeechSequence.TIME;
                 sequential = Sequential.CLOCKWISE;
                 changeState(); //切换状态（发言状态）
-                startSpeech(players); //开始发言
+                startSpeech(players, true); //开始发言
             } else if (chiefId != -1 && poisonId != -1 && killedId != -1 && killedId != poisonId) {
                 //双死
                 state.send(chiefId, DOUBLE_DEATH);
-            } else if (chiefId != -1 && ((killedId != 1 && poisonId == -1) || (killedId == -1 && poisonId != -1) || (poisonId != -1 && killedId ==poisonId))) {
+            } else if (chiefId != -1 && ((killedId != -1 && poisonId == -1) || (killedId == -1 && poisonId != -1) || (poisonId != -1 && killedId == poisonId))) {
                 //单死
                 state.send(chiefId, SINGLE_DEATH);
             } else {
-                //谁也没死死左死右
+                //谁也没死警左警右
                 state.send(chiefId, DOUBLE_DEATH);
             }
 
+        } else if (state instanceof ChampaignVoteState) {
+            Collection<UserEntity> values = chiefCampaignMap.values();
+            int[] ids = new int[values.size()];
+            int index = 0;
+            for (UserEntity value : values) {
+                ids[index++] = value.getUserId();
+            }
+            state.send(ids);
+        } else if (state instanceof LastWordsState) {
+            if (((LastWordsState) state).getId() != -1) {
+                state.send(((LastWordsState) state).getId());
+            } else {
+                state.send(voteId);
+            }
         } else {
             state.send(getAliveIds());
 
@@ -305,6 +347,7 @@ public class God implements GodContract {
             }
             dayTime = DayTime.DAY_TIME;
             LogUtils.e(TAG, "onNight", "第" + dayNum + "天日");
+            canSelfDestruction = true;
             return;
         }
 
@@ -313,9 +356,14 @@ public class God implements GodContract {
             return;
         }
         if (state instanceof ChampaignSpeechState) {
-            startSpeech(players);
+
+            return;
         }
         if (state instanceof NotifyState) {
+            checkEveryDayStatus();
+            return;
+        }
+        if (state instanceof LastWordsState) {
 
         }
 
@@ -328,6 +376,9 @@ public class God implements GodContract {
         if (isGameEnd()) {
             LogUtils.e(TAG, "doOnGameEnd", "游戏结束" + (result == GameResult.WOLF_WIN ? "狼人" : "好人") + "阵营胜利");
             setState(new GameEndState());
+
+            EventBus.getDefault().post(new GameResultMessage(result, players));
+            releaseGod();
         } else {
             LogUtils.e(TAG, "doOnGameEnd", "游戏继续");
         }
@@ -345,13 +396,21 @@ public class God implements GodContract {
 
     @Override
     public void checkEveryDayStatus() {
+        dead(killedId);
+        dead(poisonId);
         if (killedId == -1 && poisonId == -1) {
             LogUtils.e(TAG, "checkEveryDayStatus", "昨夜是平安夜");
         } else if ((killedId != -1 && poisonId == -1) || (killedId == -1 && poisonId != -1)) {
             LogUtils.e(TAG, "checkEveryDayStatus", "昨夜" + (killedId == -1 ? poisonId : killId) + "号玩家倒牌");
+            if (dayNum == 1) {
+                setState(new LastWordsState(killedId));
+            }
         } else {
             int i = random.nextInt() % 1;
             LogUtils.e(TAG, "checkEveryDayStatus", "昨夜" + (i == 0 ? killedId + "," + poisonId : poisonId + "," + killedId) + "号玩家倒排");
+            if (dayNum == 1) {
+                setState(new LastWordsState(killedId));
+            }
         }
     }
 
@@ -368,13 +427,15 @@ public class God implements GodContract {
         switch (message.getMessage()) {
             case ConfirmMessage.CONFIRM_WATCH_CARD:
                 if (players.size() == ++confirmNum) {
-
+                    confirmNum = 0;
                 }
                 break;
             case ConfirmMessage.CONFIRM:
                 //收到确认信号再进行下一步
-                if (++confirmNum == players.size() - deadPlayerMap.size()) { //若所有存活的玩家发出确认信号
+                LogUtils.e(TAG, "onConfirmEvent", "get receive");
+                if (++confirmNum == players.size() - deadPlayerMap.size()) { //若所有存活的玩家发出确认信号players.size() - deadPlayerMap.size()
                     if (!(state instanceof GameEndState)) {
+                        LogUtils.e(TAG, "onConfirmEvent", "start new asyncTask");
                         mAsyncTask = new StateAsyncTask();
                         mAsyncTask.execute(); //启动一个新的异步任务
                     }
@@ -400,6 +461,7 @@ public class God implements GodContract {
 
                 break;
             case VOTE: //票人
+                LogUtils.e(TAG, "vote", (eventEntity.getSend().getUserId() + 1) + "号玩家投" + eventEntity.getTarget() + "号玩家");
                 if (state instanceof VoteState) {
                     exileVote(eventEntity);
                 } else if (state instanceof ChampaignVoteState) {
@@ -444,16 +506,24 @@ public class God implements GodContract {
                 if ((notCampaignMap.size() + chiefCampaignMap.size())
                         == (players.size() - deadPlayerMap.size())) {
                     cancelTask();
+                    startSpeech(chiefCampaignMap, false);
                 }
                 break;
             case NOT_CHIEF_CAMPAIGN:
                 notCampaignMap.put(notCampaignMap.size(), eventEntity.getSend());
                 if ((notCampaignMap.size() + chiefCampaignMap.size())
                         == (players.size() - deadPlayerMap.size())) {
+
                     cancelTask();
+                    startSpeech(chiefCampaignMap, false);
                 }
                 break;
             case END_SPEECH:
+                if (state instanceof LastWordsState) {
+                    mAsyncTask.cancel(true);
+                } else {
+                    mSpeechAsyncTask.cancel(true);
+                }
                 break;
             case CHOOSE_SEQUENCE:
                 switch (eventEntity.getTarget()) {
@@ -468,6 +538,7 @@ public class God implements GodContract {
                         //警右
                         break;
                     case 0x10:
+
                         //死左
                         speechSequence = SpeechSequence.DEAD_LEFT;
                         sequential = Sequential.CLOCKWISE;
@@ -480,31 +551,66 @@ public class God implements GodContract {
 
                 }
                 changeState();
-                startSpeech(players);
+                startSpeech(players, true);
+                break;
+            case GIVE_CHIEF:
+                chiefId = eventEntity.getTarget();
+                EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.YOU_ARE_CHIEF, chiefId));
+                break;
+            case NOT_GIVE_CHIEF:
+                chiefId = -1;
+                break;
+            case RETURN_WATER:
+                chiefCampaignMap.remove(eventEntity.getSend().getUserId());
+                EventBus.getDefault().post(new ToastMessage(eventEntity.getSend().getUserId() + "号玩家退水"));
+                break;
+            case SELF_DESTRUCTION:
+                synchronized (God.class) {
+                    if (canSelfDestruction) {
+                        dead(eventEntity.getSend().getUserId());
+                        setState(new NightState());
+                        cancelTask();
+                        cancelSpeechTask();
+                        canSelfDestruction = false;
+                    }
+                }
                 break;
         }
     }
 
     private void champaignVote(UserEventEntity eventEntity) {
-        votePool.put(eventEntity.getSend(), eventEntity.getTarget());
-        if (votePool.size() == players.size() - deadPlayerMap.size()) {
-            List<UserEntity> most = getMost(votePool);
-            if (most.size() > 1 && pkList == null) {
-                Map<Integer, UserEntity> pkMap = new HashMap<>();
-                for (UserEntity userEntity : pkList) {
-                    pkMap.put(userEntity.getUserId(), userEntity);
-                }
-                pkList = most;
-                setState(new ChampaignSpeechState());
-                startSpeech(pkMap);
-            } else if (most.size() > 1 && pkList != null) {
-                chiefId = -1;
-            } else {
-                chiefId = most.get(0).getUserId();
-                EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.YOU_ARE_CHIEF, chiefId));
+        votePool.put(eventEntity.getSend(), eventEntity.getTarget()); //XX玩家投XX号玩家
+        if (votePool.size() == notCampaignMap.size()) {
+            synchronized (God.class) {
+                hasVote = true;
             }
+            chaMpaignVoteImpl();
             cancelTask();
         }
+    }
+
+    private void chaMpaignVoteImpl() {
+        List<UserEntity> most = getMost(votePool);
+        if (most.size() > 1 && pkList == null) {
+            Map<Integer, UserEntity> pkMap = new HashMap<>();
+            for (UserEntity userEntity : pkList) {
+                pkMap.put(userEntity.getUserId(), userEntity);
+            }
+            pkList = most;
+            setState(new ChampaignSpeechState());
+            LogUtils.e(TAG, "champaignVote", "平票，进入PK环节");
+            startSpeech(pkMap, false);
+        } else if (most.size() > 1 && pkList != null) {
+            LogUtils.e(TAG, "champaignVote", "平票，没有警长");
+            pkList = null;
+
+            chiefId = -1;
+        } else {
+            LogUtils.e(TAG, "champaignVote", (most.get(0).getUserId() + 1) + "号玩家当选警长");
+            chiefId = most.get(0).getUserId();
+            EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.YOU_ARE_CHIEF, chiefId));
+        }
+
     }
 
     /**
@@ -515,51 +621,64 @@ public class God implements GodContract {
     private void exileVote(UserEventEntity eventEntity) {
         votePool.put(eventEntity.getSend(), eventEntity.getTarget());
         if (votePool.size() == players.size() - deadPlayerMap.size()) {
-            List<UserEntity> most = getMost(votePool);
-            if (most.size() > 1) {
-                pkList = most;
-            } else {
-                voteId = most.get(0).getUserId();
+            synchronized (God.class) {
+                hasVote = true;
             }
+            exileVoteImpl();
             cancelTask();
+        }
+    }
+
+    private void exileVoteImpl() {
+        List<UserEntity> most = getMost(votePool);
+        if (most.size() > 1 && pkList == null) {
+            Map<Integer, UserEntity> pkMap = new HashMap<>();
+            for (UserEntity userEntity : pkList) {
+                pkMap.put(userEntity.getUserId(), userEntity);
+            }
+            pkList = most;
+            setState(new ChampaignSpeechState());
+            LogUtils.e(TAG, "vote", "平票，进入PK环节");
+            startSpeech(pkMap, false);
+        } else if (most.size() > 1 && pkList != null) {
+            LogUtils.e(TAG, "vote", "平票");
+            pkList = null;
+            voteId = -1;
+        } else {
+            LogUtils.e(TAG, "vote", (most.get(0).getUserId() + 1) + "号玩家出局");
+            if (voteId == idiotId && idiotId != -1) {
+                EventBus.getDefault().post(new JesusEventEntity(RoleType.IDIOT, JesusEvent.IDIOT_VOTED, voteId));
+            }
+            voteId = most.get(0).getUserId();
+            dead(voteId);
         }
     }
 
     /**
      * 降序排列
      *
-     * @param map
+     * @param map 玩家投票的map，UserEntity为玩家
      * @return
      */
     private List<UserEntity> getMost(Map<UserEntity, Integer> map) {
-        Set<UserEntity> userEntities = map.keySet();
-        Map<Integer, Integer> voteMap = new HashMap<>();
-        Iterator<UserEntity> iterator = userEntities.iterator();
-        while (iterator.hasNext()) {
-            UserEntity next = iterator.next();
-            voteMap.put(next.getUserId(), 0);
-        }
-        for (UserEntity userEntity : userEntities) {
-            Integer integer = voteMap.get(map.get(userEntity));
-            integer = integer + 1;
-            voteMap.put(map.get(userEntity), integer);
-        }
-        Collection<Integer> values = voteMap.values();
-        List<Integer> list = new ArrayList<>();
-        for (Integer value : values) {
-            list.add(value);
-        }
-        Collections.sort(list, new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o2 - o1;
-            }
-        });
-        Integer integer = list.get(0); //获取最大值
+        Set<UserEntity> userEntities = map.keySet(); //投票玩家的集合
         List<UserEntity> resultList = new ArrayList<>();
+        int[] votes = new int[players.size()]; //用一个和玩家数量一样大小的数组表示被投的号数
+        //遍历map，取出票数，数组对应位++
         for (UserEntity userEntity : userEntities) {
-            if (voteMap.get(userEntity.getUserId()) == integer) {
-                resultList.add(userEntity);
+            Integer targetId = map.get(userEntity);
+            if (userEntity.getUserId() == chiefId) { //若为警长
+                votes[targetId] += 3; //警长1.5票，方便计算取两倍
+            } else {
+                votes[targetId] += 2; //其他人都是1票
+            }
+        }
+        int[] votesCopy = Arrays.copyOf(votes, votes.length); //备份
+        Arrays.sort(votesCopy); //升序排列
+        int voteMax = votesCopy[votesCopy.length - 1]; //获取最大票数
+        for (int i = 0; i < votes.length; i++) {
+            if (voteMax == votes[i]) {
+                resultList.add(players.get(i)); //把最高票数对应的人都添加进resultList
             }
         }
         return resultList;
@@ -587,6 +706,21 @@ public class God implements GodContract {
         LogUtils.e(TAG, "release", "release resource");
     }
 
+    public void releaseGod() {
+        release();
+        INSTANCE = null;
+        wolfNum = 0;
+        villagerNum = 0;
+        tellerNum = 0;
+        witchNum = 0;
+        hunterNum = 0;
+        idiotNum = 0;
+        guardNum = 0;
+        mode = GameMode.KILL_SIDE; //游戏模式
+        dayNum = 0; //游戏进行的天数
+        dayTime = DayTime.NIGHT; //白天或者黑夜
+    }
+
     private void shoot(int id) {
         shootId = id;
         dead(id);
@@ -594,17 +728,19 @@ public class God implements GodContract {
 
     private void dead(int id) {
         if (id != -1) {
+            EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.DEAD, id));
             players.get(id).setState(new DeadState());
             deadPlayerMap.put(id, players.get(id));
+            if (id == chiefId) {
+                EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.GIVE_CHIEF, chiefId));
+            }
         }
     }
 
     private void changeState() {
 
         BaseJesusState next = state.next();
-        if (mAsyncTask != null && !mAsyncTask.isCancelled()) {
-            mAsyncTask.cancel(true);
-        }
+
         if (next != null) {
             setState(next);
             LogUtils.e(TAG, "changeState", "state has changed, state:" + next);
@@ -650,7 +786,8 @@ public class God implements GodContract {
     }
 
     private void cancelTask() {
-        if (mAsyncTask != null) {
+        if (mAsyncTask != null && mAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
+            LogUtils.e(TAG, "onCancelled", "try to cancel task");
             mAsyncTask.cancel(true);
         }
     }
@@ -737,16 +874,29 @@ public class God implements GodContract {
      *
      * @param userEntity
      */
-    private void nextSpeech(UserEntity userEntity) {
+    private void nextSpeech(UserEntity userEntity, Map<Integer, UserEntity> map, boolean hasDead) {
         UserEntity nextUser = userEntity.getNext();
         BaseState state = userEntity.getNext().getState();
         //跳过死人
-        while (state instanceof DeadState || state instanceof PoisonDeadState) {
+        while (state instanceof DeadState || state instanceof PoisonDeadState || !containsId(nextUser.getUserId(), map)) {
+            if (hasDead) {
+                hasSpeechNum++;
+            }
             nextUser = nextUser.getNext();
             state = nextUser.getState();
         }
         cancelSpeechTask();
-        mSpeechAsyncTask = new SpeechAsyncTask(nextUser);
+        mSpeechAsyncTask = new SpeechAsyncTask(nextUser, map, hasDead);
+        mSpeechAsyncTask.execute();
+    }
+
+    private boolean containsId(Integer id, Map<Integer, UserEntity> map) {
+        for (UserEntity userEntity : map.values()) {
+            if (userEntity.getUserId() == id) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -754,63 +904,115 @@ public class God implements GodContract {
      *
      * @param userEntity
      */
-    private void prevSpeech(UserEntity userEntity) {
+    private void prevSpeech(UserEntity userEntity, Map<Integer, UserEntity> map, boolean hasDead) {
         UserEntity prevUser = userEntity.getPrev();
         BaseState state = userEntity.getPrev().getState();
         //跳过死人
-        while (state instanceof DeadState || state instanceof PoisonDeadState) {
-            hasSpeechNum++;
+        while (state instanceof DeadState || state instanceof PoisonDeadState || !containsId(prevUser.getUserId(), map)) {
+            if (hasDead) {
+                hasSpeechNum++;
+            }
             prevUser = prevUser.getPrev();
             state = prevUser.getState();
         }
         cancelSpeechTask();
-        mSpeechAsyncTask = new SpeechAsyncTask(prevUser);
+        mSpeechAsyncTask = new SpeechAsyncTask(prevUser, map, hasDead);
+        mSpeechAsyncTask.execute();
     }
 
-    private void startSpeech(Map<Integer, UserEntity> map) {
+    private void startSpeech(Map<Integer, UserEntity> map, boolean hasDead) {
         UserEntity userEntity = null;
-
+        cancelTask();
+        if (map == null) {
+            LogUtils.e(TAG, "startSpeech", "map is null");
+            changeState();
+            return;
+        }
+        Collection<UserEntity> values = map.values();
+        LogUtils.e(TAG, "startSpeech", Arrays.deepToString(values.toArray()));
         switch (speechSequence) {
             case CHIEF_LEFT:
+                //TODO 做出了修改
                 for (int i = 0; i < map.size(); i++) {
-                    UserEntity userEntity1 = map.get((chiefId + i + 1) % 12);
+                    UserEntity userEntity1 = null;
+                    for (int j = 0; j < map.size(); j++) {
+                        userEntity1 = map.get(j);
+                        if (userEntity1.getUserId() == (chiefId + i + 1) % map.size()) {
+                            break;
+                        } else {
+                            userEntity1 = null;
+                        }
+
+                    }
                     if (userEntity1 != null) {
                         BaseState state = userEntity1.getState();
                         if (!(state instanceof DeadState) && !(state instanceof PoisonDeadState)) {
                             userEntity = userEntity1;
+                            break;
                         }
                     }
                 }
                 break;
             case CHIEF_RIGHT:
                 for (int i = 0; i < map.size(); i++) {
-                    UserEntity userEntity1 = map.get((12 + chiefId - i - 1) % 12);
+                    UserEntity userEntity1 = null;
+                    for (int j = 0; j < map.size(); j++) {
+                        userEntity1 = map.get(j);
+                        if (userEntity1.getUserId() == (map.size() + chiefId - i - 1) % map.size()) {
+                            break;
+                        } else {
+                            userEntity1 = null;
+                        }
+
+                    }
+
                     if (userEntity1 != null) {
                         BaseState state = userEntity1.getState();
                         if (!(state instanceof DeadState) && !(state instanceof PoisonDeadState)) {
                             userEntity = userEntity1;
+                            break;
                         }
                     }
                 }
                 break;
             case DEAD_LEFT:
                 for (int i = 0; i < map.size(); i++) {
-                    UserEntity userEntity1 = map.get((killedId + i + 1) % 12);
+                    UserEntity userEntity1 = null;
+                    for (int j = 0; j < map.size(); j++) {
+                        userEntity1 = map.get(j);
+                        if (userEntity1.getUserId() == (killedId + i + 1) % map.size()) {
+                            break;
+                        } else {
+                            userEntity1 = null;
+                        }
+
+                    }
                     if (userEntity1 != null) {
                         BaseState state = userEntity1.getState();
                         if (!(state instanceof DeadState) && !(state instanceof PoisonDeadState)) {
                             userEntity = userEntity1;
+                            break;
                         }
                     }
                 }
                 break;
             case DEAD_RIGHT:
                 for (int i = 0; i < map.size(); i++) {
-                    UserEntity userEntity1 = map.get((12 + killedId - i - 1) % 12);
+                    UserEntity userEntity1 = null;
+                    for (int j = 0; j < map.size(); j++) {
+                        userEntity1 = map.get(j);
+                        if (userEntity1.getUserId() == (map.size() + killedId - i - 1) % map.size()) {
+                            break;
+                        } else {
+                            userEntity1 = null;
+                        }
+
+                    }
                     if (userEntity1 != null) {
                         BaseState state = userEntity1.getState();
                         if (!(state instanceof DeadState) && !(state instanceof PoisonDeadState)) {
                             userEntity = userEntity1;
+                            break;
                         }
                     }
                 }
@@ -823,48 +1025,49 @@ public class God implements GodContract {
                 break;
         }
         if (userEntity != null) {
-            mSpeechAsyncTask = new SpeechAsyncTask(userEntity);
+            mSpeechAsyncTask = new SpeechAsyncTask(userEntity, map, hasDead);
             mSpeechAsyncTask.execute();
+        } else {
+            LogUtils.e(TAG, "startSpeech", "user is null");
         }
     }
 
     /**
      * 获取和目标发言玩家距离最近的玩家
+     *
      * @param integer id
-     * @param map 发言的玩家集合
+     * @param map     发言的玩家集合
      * @return
      */
+    @SuppressWarnings("unchecked")
     private UserEntity getNearUser(Integer integer, Map<Integer, UserEntity> map) {
-        UserEntity userEntity;
+        //UserEntity userEntity = null;
         List<Integer> list = new ArrayList<>();
         for (int i = 0; i < map.size(); i++) {
             BaseState state = map.get(i).getState();
             if (!(state instanceof DeadState) && !(state instanceof PoisonDeadState)) {
-                list.add(i);
+                list.add(map.get(i).getUserId()); //把不是死人的id添加到list里面
             }
         }
+        //距离的映射，key为id，value为距离；
         Map<Integer, Integer> sortMap = new HashMap<>();
-        for (Integer integer1 : list) {
-            sortMap.put(integer - integer1, integer1);
+        for (Integer ids : list) {
+            sortMap.put(ids, (integer - ids) * (integer - ids));
         }
-        List<Integer> sortList = new ArrayList<>();
-        for (Integer integer1 : sortMap.keySet()) {
-            sortList.add(Math.abs(integer1));
-        }
-        Collections.sort(sortList, new Comparator<Integer>() {
+        Set<Map.Entry<Integer, Integer>> entries = sortMap.entrySet();
+        Object[] objects = entries.toArray();
+        Arrays.sort(objects, new Comparator<Object>() {
             @Override
-            public int compare(Integer o1, Integer o2) {
-                return o1 - o2;
+            public int compare(Object o1, Object o2) {
+                Map.Entry<Integer, Integer> entry1 = (Map.Entry<Integer, Integer>) o1;
+                Map.Entry<Integer, Integer> entry2 = (Map.Entry<Integer, Integer>) o2;
+                return entry1.getValue() - entry2.getValue();
             }
         });
-        Integer integer1 = sortMap.get(sortList.get(0));
-        if (integer1 != null) {
-            userEntity = players.get(integer1);
-        } else {
-            userEntity = players.get(sortMap.get(-sortList.get(0)));
-        }
-        return userEntity;
+        Map.Entry<Integer, Integer> object = (Map.Entry<Integer, Integer>) objects[0];
+        return players.get(object.getKey());
     }
+
 
     public Map<Integer, UserEntity> getPlayers() {
         return players;
@@ -914,6 +1117,8 @@ public class God implements GodContract {
         this.sequential = sequential;
     }
 
+
+    //构造方法里面应该传个state的
     public class StateAsyncTask extends AsyncTask<Void, Integer, Void> {
         private static final String TAG = "StateAsyncTask";
         public int stateDuration = 0;
@@ -921,6 +1126,7 @@ public class God implements GodContract {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            LogUtils.e(TAG, "onPreExecute", "preExecute");
             if (state instanceof DaytimeState) {
                 if (dayNum == 1) {
 
@@ -973,6 +1179,14 @@ public class God implements GodContract {
             if (state instanceof HunterGetShootState) {
                 stateDuration = 5;
             }
+            if (state instanceof LastWordsState) {
+                if (((LastWordsState) state).getId() == -1) {
+                    stateDuration = 0;
+                } else {
+                    stateDuration = 30;
+
+                }
+            }
 
         }
 
@@ -1000,7 +1214,50 @@ public class God implements GodContract {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             //完成了就切换状态
-            changeState();
+            if (state.next() != null) {
+                if (state instanceof NotifyState && dayNum == 1 && killedId != -1 && protectedId != killedId) {
+                    //第一天被杀的话进入遗言阶段
+                    setState(new LastWordsState(killedId));
+                    return;
+                }
+                if (state instanceof LastWordsState && lastState instanceof NotifyState) {
+                    //上一个阶段是报夜阶段的话
+                    EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.STOP_SPEECH));
+                    setState(new SpeechState());
+                    return;
+                }
+                if (state instanceof LastWordsState) {
+                    EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.STOP_SPEECH));
+
+                }
+                if (state instanceof SpeechState) {
+                    //发言阶段的切换不由这个异步任务控制
+
+                }
+
+                changeState();
+
+            } else if (state instanceof ChampaignVoteState && stateDuration != 0) {
+                synchronized (God.class) {
+                    if (!hasVote) {
+                        chaMpaignVoteImpl();
+                    } else {
+                        hasVote = false;
+                    }
+                }
+                setState(new NotifyState());
+            } else if (state instanceof VottingState && stateDuration != 0) {
+                synchronized (God.class) {
+                    if (!hasVote) {
+                        exileVoteImpl();
+                    } else {
+                        hasVote = false;
+                    }
+                }
+                setState(new LastWordsState());
+            } else if ((state instanceof LastWordsState && stateDuration != 0) || (stateDuration == 0 && state instanceof LastWordsState && ((LastWordsState) state).getId() == -1)) {
+                setState(new NightState());
+            }
         }
 
         @Override
@@ -1019,8 +1276,53 @@ public class God implements GodContract {
         protected void onCancelled() {
             super.onCancelled();
             //取消也切换状态
-            LogUtils.e(TAG, "onCancelled", "try to cancel task");
-            changeState();
+            LogUtils.e(TAG, "onCancelled", "cancel task");
+
+            if (state.next() != null) {
+                if (state instanceof NotifyState && dayNum == 1 && killedId != -1 && protectedId != killedId) {
+                    //第一天被杀的话进入遗言阶段
+                    setState(new LastWordsState(killedId));
+                    return;
+                }
+                if (state instanceof LastWordsState && lastState instanceof NotifyState) {
+                    //上一个阶段是报夜阶段的话
+                    EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.STOP_SPEECH));
+                    setState(new SpeechState());
+                    return;
+                }
+                if (state instanceof LastWordsState) {
+                    EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.STOP_SPEECH));
+
+                }
+                if (state instanceof SpeechState) {
+                    //发言阶段的切换不由这个异步任务控制
+
+                }
+
+                changeState();
+
+            } else if (state instanceof ChampaignVoteState && stateDuration != 0) {
+                synchronized (God.class) {
+                    if (!hasVote) {
+                        chaMpaignVoteImpl();
+                    } else {
+                        hasVote = false;
+                    }
+                }
+
+                setState(new NotifyState());
+            } else if (state instanceof VottingState && stateDuration != 0) {
+                synchronized (God.class) {
+                    if (!hasVote) {
+                        exileVoteImpl();
+                    } else {
+                        hasVote = false;
+                    }
+                }
+                setState(new LastWordsState());
+            } else if (state instanceof LastWordsState && stateDuration > 5) {
+                setState(new NightState());
+            }
         }
     }
 
@@ -1029,10 +1331,15 @@ public class God implements GodContract {
      */
     public class SpeechAsyncTask extends AsyncTask<Void, Integer, Void> {
         private UserEntity userEntity;
+        private final Map<Integer, UserEntity> map;
+        private final boolean hasDead;
         int duration;
 
-        public SpeechAsyncTask(UserEntity userEntity) {
+        public
+        SpeechAsyncTask(UserEntity userEntity, Map<Integer, UserEntity> map, boolean hasDead) {
             this.userEntity = userEntity;
+            this.map = map;
+            this.hasDead = hasDead;
         }
 
         public UserEntity getUserEntity() {
@@ -1044,13 +1351,15 @@ public class God implements GodContract {
             super.onPreExecute();
             hasSpeechNum++;
             duration = 60;
+            LogUtils.e(TAG, "onSpeechPreExecute", (userEntity.getUserId() + 1) + "号玩家开始发言");
+            EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.SPEECH, userEntity.getUserId()));
         }
 
         @Override
         protected Void doInBackground(Void... params) {
             for (int i = 0; i < duration; i++) {
                 if (isCancelled()) {
-                    LogUtils.e(TAG, "onProgressUpdate", "truly cancelled");
+                    LogUtils.e(TAG, "onSpeechProgressUpdate", "truly cancelled");
                     return null;
                 }
                 publishProgress(((int) ((i * 1.0 / duration) * 100)));
@@ -1068,24 +1377,35 @@ public class God implements GodContract {
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
             if (isCancelled()) {
-                LogUtils.e(TAG, "onProgressUpdate", "truly cancelled");
+                LogUtils.e(TAG, "onSpeechProgressUpdate", "truly cancelled");
                 return;
             }
-            LogUtils.e(TAG, "onProgressUpdate", values[0] + "");
+            LogUtils.e(TAG, "onSpeechProgressUpdate", values[0] + "");
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            LogUtils.e(TAG, "onPostExecute", userEntity.getUserId() + "号玩家发言结束");
-            if (hasSpeechNum == players.size()) {
-                LogUtils.e(TAG, "onPostExecute", "所有玩家发言结束");
-                changeState();
-            } else {
-                if (sequential == Sequential.CLOCKWISE) {
-                    nextSpeech(userEntity);
+            LogUtils.e(TAG, "onSpeechPostExecute", userEntity.getUserId() + "号玩家发言结束");
+            EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.STOP_SPEECH));
+            if (hasSpeechNum == map.size()) {
+                hasSpeechNum = 0;
+                LogUtils.e(TAG, "onSpeechPostExecute", "所有玩家发言结束");
+                if (state.next() != null) {
+                    changeState();
                 } else {
-                    prevSpeech(userEntity);
+                    if (map == chiefCampaignMap) {
+                        setState(new ChampaignVoteState());
+                    } else {
+                        setState(new VottingState());
+                    }
+                }
+
+            } else {
+                if (sequential == Sequential.ANTI_CLOCKWISE) {
+                    prevSpeech(userEntity, map, hasDead);
+                } else {
+                    nextSpeech(userEntity, map, hasDead);
                 }
             }
 
@@ -1094,17 +1414,35 @@ public class God implements GodContract {
         @Override
         protected void onCancelled() {
             super.onCancelled();
-            LogUtils.e(TAG, "onCancelled", "try to cancel task");
-            if (hasSpeechNum == players.size()) {
-                LogUtils.e(TAG, "onPostExecute", "所有玩家发言结束");
-                changeState();
-            } else {
-                if (sequential == Sequential.CLOCKWISE) {
-                    nextSpeech(userEntity);
+            LogUtils.e(TAG, "onSpeechCancelled", "cancel task");
+            EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.STOP_SPEECH));
+            if (hasSpeechNum == map.size()) {
+                hasSpeechNum = 0;
+                LogUtils.e(TAG, "onSpeechPostExecute", "所有玩家发言结束");
+                if (state.next() != null) {
+                    changeState();
                 } else {
-                    prevSpeech(userEntity);
+                    if (map == chiefCampaignMap) {
+                        setState(new ChampaignVoteState());
+                    } else {
+                        setState(new VottingState());
+                    }
+                }
+            } else {
+                if (sequential == Sequential.ANTI_CLOCKWISE) {
+                    prevSpeech(userEntity, map, hasDead);
+                } else {
+                    nextSpeech(userEntity, map, hasDead);
                 }
             }
+        }
+    }
+
+    private class ConfirmListener {
+
+
+        public ConfirmListener() {
+            EventBus.getDefault().register(this);
         }
     }
 }

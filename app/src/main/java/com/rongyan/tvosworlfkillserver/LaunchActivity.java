@@ -133,6 +133,7 @@ public class LaunchActivity extends BaseActivity {
         if (event.getMessage().equals(START_GAME_MESSAGE)) {
             initGame();
         }
+
     }
 
     @Subscribe(threadMode = ThreadMode.MainThread)

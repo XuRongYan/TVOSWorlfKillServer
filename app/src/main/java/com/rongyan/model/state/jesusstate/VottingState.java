@@ -7,6 +7,7 @@ import com.rongyan.model.abstractinterface.BaseJesusState;
 import com.rongyan.model.entity.JesusEventEntity;
 import com.rongyan.model.enums.JesusEvent;
 import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.message.ToastMessage;
 
 import de.greenrobot.event.EventBus;
 
@@ -19,11 +20,12 @@ public class VottingState implements BaseJesusState {
     @Override
     public void send(int...id) {
         Log.e(TAG, "现在开始投票");
+        EventBus.getDefault().post(new ToastMessage("现在开始投票"));
         EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.VOTE, id));
     }
 
     @Override
     public BaseJesusState next() {
-        return new NightState();
+        return null;
     }
 }
