@@ -18,6 +18,7 @@ import com.rongyan.tvosworlfkillserver.base.BaseActivity;
 import com.rongyan.tvosworlfkillserver.base.BaseAppManager;
 import com.rongyan.tvosworlfkillserver.enums.GameResult;
 import com.rongyan.tvosworlfkillserver.message.GameResultMessage;
+import com.rongyan.tvosworlfkillserver.mina.MinaManager;
 import com.rongyan.tvosworlfkillserver.popupwindowHelper.PopupWindowUtil;
 import com.rongyant.commonlib.util.LogUtils;
 
@@ -154,6 +155,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         GodHolder.god.releaseGod();
+                        MinaManager.getInstance().closeAllSession();
                         goActivity(ConfigActivity.class);
                     }
                 })

@@ -5,6 +5,7 @@ import com.rongyan.model.enums.JesusEvent;
 import com.rongyan.model.enums.RoleType;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Created by XRY on 2017/7/27.
@@ -57,7 +58,7 @@ public class JesusEventEntity implements Serializable{
         return "JesusEventEntity{" +
                 "roleType=" + roleType +
                 ", event=" + event +
-                ", targetId=" + targetIds +
+                ", targetId=" + Arrays.toString(targetIds) +
                 '}';
     }
 }

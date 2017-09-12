@@ -49,6 +49,7 @@ public class ServerHandler extends IoHandlerAdapter {
         LogUtils.e(TAG, "sessionClosed", "ip:" + session.getRemoteAddress().toString()
                 + " session closed");
         String remoteIp = session.getRemoteAddress().toString().split(":")[0];
+
         MinaManager.userEntityMap.remove(remoteIp);
         MinaManager.liveUserMap.remove(remoteIp);
         MinaManager.sessionMap.remove(remoteIp);

@@ -84,4 +84,18 @@ public class MinaManager {
         acceptor.dispose(true);
 
     }
+
+    public void closeAllSession() {
+        userEntityMap = new HashMap<>();
+        liveUserMap = new HashMap<>();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (IoSession ioSession : sessionMap.values()) {
+                    ioSession.closeNow();
+                }
+            }
+        }).start();
+
+    }
 }

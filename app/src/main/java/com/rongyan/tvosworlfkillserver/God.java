@@ -540,7 +540,6 @@ public class God implements GodContract {
                         //警右
                         break;
                     case 0x10:
-
                         //死左
                         speechSequence = SpeechSequence.DEAD_LEFT;
                         sequential = Sequential.CLOCKWISE;
@@ -593,22 +592,24 @@ public class God implements GodContract {
 
     private void champaignVoteImpl() {
         List<UserEntity> most = getMost(votePool);
+        if (most == null) {
+            LogUtils.e(TAG, "champaignVote", "没有警长");
+            return;
+        }
         if (most.size() > 1 && pkList == null) {
             Map<Integer, UserEntity> pkMap = new HashMap<>();
-
+            pkList = most;
             for (UserEntity userEntity : pkList) {
                 pkMap.put(userEntity.getUserId(), userEntity);
             }
-            pkList = most;
             setState(new ChampaignSpeechState());
             LogUtils.e(TAG, "champaignVote", "平票，进入PK环节");
             startSpeech(pkMap, false);
         } else if (most.size() > 1 && pkList != null) {
             LogUtils.e(TAG, "champaignVote", "平票，没有警长");
             pkList = null;
-
             chiefId = -1;
-        } else {
+        } else if (most != null && most.size() > 0) {
             LogUtils.e(TAG, "champaignVote", (most.get(0).getUserId() + 1) + "号玩家当选警长");
             chiefId = most.get(0).getUserId();
             EventBus.getDefault().post(new JesusEventEntity(RoleType.ANY, JesusEvent.YOU_ARE_CHIEF, chiefId));
@@ -647,13 +648,15 @@ public class God implements GodContract {
             LogUtils.e(TAG, "vote", "平票");
             pkList = null;
             voteId = -1;
-        } else {
+        } else if (most != null && most.size() > 0) {
             LogUtils.e(TAG, "vote", (most.get(0).getUserId() + 1) + "号玩家出局");
             if (voteId == idiotId && idiotId != -1) {
                 EventBus.getDefault().post(new JesusEventEntity(RoleType.IDIOT, JesusEvent.IDIOT_VOTED, voteId));
             }
             voteId = most.get(0).getUserId();
             dead(voteId);
+        } else {
+            LogUtils.e(TAG, "vote", "无人出局");
         }
     }
 
@@ -664,6 +667,9 @@ public class God implements GodContract {
      * @return
      */
     private List<UserEntity> getMost(Map<UserEntity, Integer> map) {
+        if (map == null && map.size() == 0) {
+            return null;
+        }
         Set<UserEntity> userEntities = map.keySet(); //投票玩家的集合
         List<UserEntity> resultList = new ArrayList<>();
         int[] votes = new int[players.size()]; //用一个和玩家数量一样大小的数组表示被投的号数
@@ -1149,44 +1155,44 @@ public class God implements GodContract {
             }
             if (state instanceof KillingState) {
                 //狼人杀人讨论
-                stateDuration = 5;
+                stateDuration = 60;
             }
             if (state instanceof WitchChooseState) {
                 //女巫行动
-                stateDuration = 5;
+                stateDuration = 30;
             }
             if (state instanceof VottingState) {
                 //投票
-                stateDuration = 5;
+                stateDuration = 15;
             }
             if (state instanceof TellerGetState) {
                 //预言家验人阶段
-                stateDuration = 5;
+                stateDuration = 30;
             }
             if (state instanceof HunterShootState) {
                 //猎人杀人阶段
-                stateDuration = 5;
+                stateDuration = 30;
             }
             if (state instanceof GuardProtectState) {
                 //守卫守人阶段
-                stateDuration = 5;
+                stateDuration = 30;
             }
             if (state instanceof ChiefCampaignState) {
                 //上警环节
-                stateDuration = 5;
+                stateDuration = 15;
             }
             if (state instanceof ChampaignVoteState) {
                 //竞选警长的投票
-                stateDuration = 5;
+                stateDuration = 15;
             }
             if (state instanceof HunterGetShootState) {
-                stateDuration = 5;
+                stateDuration = 15;
             }
             if (state instanceof LastWordsState) {
                 if (((LastWordsState) state).getId() == -1) {
                     stateDuration = 0;
                 } else {
-                    stateDuration = 30;
+                    stateDuration = 60;
 
                 }
             }
@@ -1323,7 +1329,7 @@ public class God implements GodContract {
                     }
                 }
                 setState(new LastWordsState());
-            } else if (state instanceof LastWordsState && stateDuration > 5) {
+            } else if (state instanceof LastWordsState && stateDuration == 60) {
                 setState(new NightState());
             }
         }
@@ -1338,8 +1344,7 @@ public class God implements GodContract {
         private final boolean hasDead;
         int duration;
 
-        public
-        SpeechAsyncTask(UserEntity userEntity, Map<Integer, UserEntity> map, boolean hasDead) {
+        public SpeechAsyncTask(UserEntity userEntity, Map<Integer, UserEntity> map, boolean hasDead) {
             this.userEntity = userEntity;
             this.map = map;
             this.hasDead = hasDead;
