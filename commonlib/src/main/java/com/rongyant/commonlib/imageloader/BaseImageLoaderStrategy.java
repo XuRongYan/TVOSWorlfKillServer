@@ -1,4 +1,4 @@
-package com.rongyant.commonlib.ImageLoader;
+package com.rongyant.commonlib.imageloader;
 
 import android.content.Context;
 

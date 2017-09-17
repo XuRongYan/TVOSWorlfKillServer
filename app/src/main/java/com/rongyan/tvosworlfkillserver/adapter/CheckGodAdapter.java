@@ -6,8 +6,8 @@ import android.widget.CompoundButton;
 
 import com.rongyan.tvosworlfkillserver.R;
 import com.rongyan.tvosworlfkillserver.entity.GodCheck;
-import com.rongyant.commonlib.CommonAdapter.CommonAdapter;
-import com.rongyant.commonlib.CommonAdapter.ViewHolder;
+import com.rongyant.commonlib.commonadapter.CommonAdapter;
+import com.rongyant.commonlib.commonadapter.ViewHolder;
 
 import java.util.List;
 

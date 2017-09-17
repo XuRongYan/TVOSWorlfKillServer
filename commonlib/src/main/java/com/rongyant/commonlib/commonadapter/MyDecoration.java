@@ -1,4 +1,4 @@
-package com.rongyant.commonlib.CommonAdapter;
+package com.rongyant.commonlib.commonadapter;
 
 import android.content.Context;
 import android.content.res.TypedArray;

@@ -64,8 +64,8 @@ public class LaunchActivity extends BaseActivity {
 
     @Override
     protected void initViews(Bundle savedInstanceState) {
-        wolfNum = getIntent().getIntExtra("wolf", -1);
-        villagerNum = getIntent().getIntExtra("villager", -1);
+        wolfNum = getIntent().getExtras().getInt("wolf");
+        villagerNum = getIntent().getExtras().getInt("villager");;
         tvServerIp.setText("服务器IP:" + NetWorkUtil.getHostIp());
         tvConnectedPeople.setText("当前连接人数：" + MinaManager.liveUserMap.size());
     }

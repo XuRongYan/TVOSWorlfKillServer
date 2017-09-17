@@ -13,11 +13,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@mipmap/img_background"
-        android:paddingTop="100dp"
-        android:paddingStart="116dp"
-        android:paddingEnd="100dp"
-        android:paddingBottom="24dp">
+        android:background="@mipmap/img_background_no_title"
+        android:padding="16dp"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"

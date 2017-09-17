@@ -4,23 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
+    android:background="@mipmap/img_tv_background"
     tools:context="com.rongyan.tvosworlfkillserver.LaunchActivity">
 
-    <TextView
-        android:id="@+id/tv_server_ip"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:textSize="48sp"
-        android:text="服务器Ip："
-        android:gravity="center"/>
+        android:layout_height="match_parent"
+        android:background="@mipmap/img_background_no_title">
+        <TextView
+            android:id="@+id/tv_server_ip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textSize="48sp"
+            android:text="服务器Ip："
+            android:gravity="center"/>
 
-    <TextView
-        android:id="@+id/tv_connected_player"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/tv_server_ip"
-        android:text="当前连接人数:"
-        android:gravity="center"/>
+        <TextView
+            android:id="@+id/tv_connected_player"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_server_ip"
+            android:text="当前连接人数:"
+            android:gravity="center"/>
+    </RelativeLayout>
+
 </RelativeLayout>

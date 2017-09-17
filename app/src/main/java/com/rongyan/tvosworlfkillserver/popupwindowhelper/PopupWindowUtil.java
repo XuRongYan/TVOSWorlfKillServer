@@ -1,4 +1,4 @@
-package com.rongyan.tvosworlfkillserver.popupwindowHelper;
+package com.rongyan.tvosworlfkillserver.popupwindowhelper;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -21,8 +21,8 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.rongyant.commonlib.ImageLoader.ImageLoader;
-import com.rongyant.commonlib.ImageLoader.ImageLoaderUtil;
+import com.rongyant.commonlib.imageloader.ImageLoader;
+import com.rongyant.commonlib.imageloader.ImageLoaderUtil;
 
 /**
  * Created by XRY on 2017/8/9.

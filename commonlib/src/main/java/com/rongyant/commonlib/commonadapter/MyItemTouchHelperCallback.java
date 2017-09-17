@@ -1,4 +1,4 @@
-package com.rongyant.commonlib.CommonAdapter;
+package com.rongyant.commonlib.commonadapter;
 
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;

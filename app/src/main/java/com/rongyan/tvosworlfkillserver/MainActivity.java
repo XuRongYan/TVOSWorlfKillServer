@@ -7,10 +7,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.rongyan.model.entity.UserEntity;
 import com.rongyan.model.enums.RoleType;
+import com.rongyan.model.message.DayTimeMessage;
 import com.rongyan.model.message.ToastMessage;
 import com.rongyan.tvosworlfkillserver.activity.ConfigActivity;
 import com.rongyan.tvosworlfkillserver.adapter.PlayerAdapter;
@@ -19,7 +20,7 @@ import com.rongyan.tvosworlfkillserver.base.BaseAppManager;
 import com.rongyan.tvosworlfkillserver.enums.GameResult;
 import com.rongyan.tvosworlfkillserver.message.GameResultMessage;
 import com.rongyan.tvosworlfkillserver.mina.MinaManager;
-import com.rongyan.tvosworlfkillserver.popupwindowHelper.PopupWindowUtil;
+import com.rongyan.tvosworlfkillserver.popupwindowhelper.PopupWindowUtil;
 import com.rongyant.commonlib.util.LogUtils;
 
 import java.util.ArrayList;
@@ -36,6 +37,11 @@ public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
     @BindView(R.id.recyclerview)
     RecyclerView recyclerView;
+    @BindView(R.id.main_daytime)
+    TextView tvDayTime;
+    @BindView(R.id.main_do_what)
+    TextView tvDoWhat;
+
     private List<UserEntity> userEntities = new ArrayList<>();
     private PlayerAdapter adapter;
     private God god;
@@ -81,8 +87,13 @@ public class MainActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MainThread)
+    public void onMessageEvent(DayTimeMessage message) {
+        tvDayTime.setText(message.getDayTime());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MainThread)
     public void onMessageEvent(ToastMessage message) {
-        Toast.makeText(mContext, message.getMessage(), Toast.LENGTH_SHORT).show();
+        tvDoWhat.setText(message.getMessage());
     }
 
     @Subscribe(threadMode = ThreadMode.MainThread)
@@ -96,18 +107,18 @@ public class MainActivity extends BaseActivity {
         for (UserEntity value : values) {
             if (value.getRoleType() == RoleType.WOLF) {
                 if (wolves.toString().equals("")) {
-                    wolves.append(value.getUserId()).append("号");
+                    wolves.append(value.getUserId()).append("号:狼人");
                 } else {
-                    wolves.append(",").append(value.getUserId()).append("号");
+                    wolves.append(",").append(value.getUserId()).append("号:狼人");
                 }
                 continue;
             }
 
             if (value.getRoleType() == RoleType.VILLAGER) {
                 if (villagers.toString().equals("")) {
-                    villagers.append(value.getUserId()).append("号");
+                    villagers.append(value.getUserId()).append("号:平民");
                 } else {
-                    villagers.append(",").append(value.getUserId()).append("号");
+                    villagers.append(",").append(value.getUserId()).append("号:平民");
                 }
                 continue;
             }

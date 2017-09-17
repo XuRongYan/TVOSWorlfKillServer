@@ -6,8 +6,8 @@ import android.support.v7.widget.RecyclerView;
 
 import com.rongyan.tvosworlfkillserver.R;
 import com.rongyan.model.entity.UserEntity;
-import com.rongyant.commonlib.CommonAdapter.CommonAdapter;
-import com.rongyant.commonlib.CommonAdapter.ViewHolder;
+import com.rongyant.commonlib.commonadapter.CommonAdapter;
+import com.rongyant.commonlib.commonadapter.ViewHolder;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class PlayerAdapter extends CommonAdapter<UserEntity> {
 
     @Override
     public void onBindVH(ViewHolder viewHolder, UserEntity item, int position) {
-        viewHolder.setText(R.id.item_player_name, item.getUsername())
+        viewHolder.setText(R.id.item_player_name, (item.getUserId() + 1) + "号")
                 .setImageBitmap(R.id.item_player_img, BitmapFactory.decodeByteArray(item.getHeadImg(), 0, item.getHeadImg().length));
 
         if (item.isSpeeching()) {

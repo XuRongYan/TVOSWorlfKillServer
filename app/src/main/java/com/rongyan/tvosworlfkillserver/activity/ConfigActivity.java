@@ -182,7 +182,8 @@ public class ConfigActivity extends BaseActivity {
             Bundle bundle = new Bundle();
             bundle.putInt("wolf", wolfNum);
             bundle.putInt("villager", villagerNum);
-            goActivity(LaunchActivity.class);
+
+            goActivity(LaunchActivity.class, bundle);
         }
     }
 

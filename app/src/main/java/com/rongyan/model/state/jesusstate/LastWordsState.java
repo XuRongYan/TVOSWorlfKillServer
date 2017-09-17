@@ -31,9 +31,11 @@ public class LastWordsState implements BaseJesusState {
 
     public LastWordsState(int id) {
         this.id = id;
+        Log.e(TAG, "进入遗言状态，初始id:" + id);
     }
 
     public LastWordsState() {
+        Log.e(TAG, "进入遗言状态，没有初始id");
     }
 
     public int getId() {

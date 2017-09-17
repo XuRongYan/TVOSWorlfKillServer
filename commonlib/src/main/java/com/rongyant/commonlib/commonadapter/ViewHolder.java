@@ -1,4 +1,4 @@
-package com.rongyant.commonlib.CommonAdapter;
+package com.rongyant.commonlib.commonadapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -20,8 +20,8 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.rongyant.commonlib.ImageLoader.ImageLoader;
-import com.rongyant.commonlib.ImageLoader.ImageLoaderUtil;
+import com.rongyant.commonlib.imageloader.ImageLoader;
+import com.rongyant.commonlib.imageloader.ImageLoaderUtil;
 
 /**
  * RecyclerView通用ViewHolder

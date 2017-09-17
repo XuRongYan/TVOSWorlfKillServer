@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TVOSWorlfKillServer</string>
+    <string name="app_name">狼人杀电视端</string>
     <string name="string_kill_side">屠边模式</string>
     <string name="string_kill_all">屠城模式</string>
     <string name="string_teller">预言家</string>
